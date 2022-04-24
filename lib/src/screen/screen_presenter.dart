@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import 'screen_service.dart';
-import 'screen_view_layout.dart';
+import 'view/screen_view_layout.dart';
 
 class ScreenPresenter {
   final ScreenService service;

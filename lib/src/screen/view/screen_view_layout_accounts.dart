@@ -9,11 +9,11 @@ import 'package:microsoft_provider/microsoft_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:tiki_style/tiki_style.dart';
 
-import '../account/account_model.dart';
-import '../provider/provider_enums.dart';
-import '../provider/provider_google.dart';
-import '../provider/provider_microsoft.dart';
-import 'screen_service.dart';
+import '../../account/account_model.dart';
+import '../../provider/provider_enums.dart';
+import '../../provider/provider_google.dart';
+import '../../provider/provider_microsoft.dart';
+import '../screen_service.dart';
 
 class ScreenViewLayoutAccounts extends StatelessWidget {
   const ScreenViewLayoutAccounts();

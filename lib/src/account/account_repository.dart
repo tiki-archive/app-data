@@ -40,7 +40,7 @@ class AccountRepository {
     account.modified = DateTime.now();
     await (txn ?? _database).update(
       _table,
-      account.toJson(),
+      account.toMap(),
       where: 'account_id = ?',
       whereArgs: [account.accountId],
     );
@@ -51,7 +51,7 @@ class AccountRepository {
     DateTime now = DateTime.now();
     account.modified = now;
     account.created = now;
-    int id = await (txn ?? _database).insert(_table, account.toJson());
+    int id = await (txn ?? _database).insert(_table, account.toMap());
     account.accountId = id;
     return account;
   }
@@ -64,7 +64,7 @@ class AccountRepository {
         where: "provider = ? AND username = ?",
         whereArgs: [provider, username]);
     if (rows.isEmpty) return null;
-    return AccountModel.fromJson(rows[0]);
+    return AccountModel.fromMap(rows[0]);
   }
 
   Future<int> deleteByEmailAndProvider(String email, String provider) async =>
@@ -74,6 +74,6 @@ class AccountRepository {
   Future<List<AccountModel>> getAll() async {
     final List<Map<String, Object?>> rows = await _database.query(_table);
     if (rows.isEmpty) return [];
-    return rows.map((e) => AccountModel.fromJson(e)).toList();
+    return rows.map((e) => AccountModel.fromMap(e)).toList();
   }
 }

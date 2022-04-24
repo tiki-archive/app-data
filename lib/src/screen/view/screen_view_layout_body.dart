@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tiki_style/tiki_style.dart';
 
-import 'screen_service.dart';
+import '../screen_service.dart';
 import 'screen_view_layout_accounts.dart';
 import 'screen_view_widget_soon.dart';
 import 'screen_view_widget_state.dart';

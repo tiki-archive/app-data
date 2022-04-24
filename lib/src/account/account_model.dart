@@ -31,34 +31,34 @@ class AccountModel {
       this.modified,
       this.created});
 
-  AccountModel.fromJson(Map<String, dynamic>? json) {
-    if (json != null) {
-      accountId = json['account_id'];
-      username = json['username'];
-      displayName = json['display_name'];
-      email = json['email'];
-      provider = json['provider'];
-      accessToken = json['access_token'];
-      refreshToken = json['refresh_token'];
-      shouldReconnect = json['should_reconnect'] == 1 ? true : false;
-      if (json['access_token_expiration'] != null) {
-        accessTokenExpiration = DateTime.fromMillisecondsSinceEpoch(
-            json['access_token_expiration']);
+  AccountModel.fromMap(Map<String, dynamic>? map) {
+    if (map != null) {
+      accountId = map['account_id'];
+      username = map['username'];
+      displayName = map['display_name'];
+      email = map['email'];
+      provider = map['provider'];
+      accessToken = map['access_token'];
+      refreshToken = map['refresh_token'];
+      shouldReconnect = map['should_reconnect'] == 1 ? true : false;
+      if (map['access_token_expiration'] != null) {
+        accessTokenExpiration =
+            DateTime.fromMillisecondsSinceEpoch(map['access_token_expiration']);
       }
-      if (json['refresh_token_expiration'] != null) {
+      if (map['refresh_token_expiration'] != null) {
         refreshTokenExpiration = DateTime.fromMillisecondsSinceEpoch(
-            json['refresh_token_expiration']);
+            map['refresh_token_expiration']);
       }
-      if (json['modified_epoch'] != null) {
-        modified = DateTime.fromMillisecondsSinceEpoch(json['modified_epoch']);
+      if (map['modified_epoch'] != null) {
+        modified = DateTime.fromMillisecondsSinceEpoch(map['modified_epoch']);
       }
-      if (json['created_epoch'] != null) {
-        created = DateTime.fromMillisecondsSinceEpoch(json['created_epoch']);
+      if (map['created_epoch'] != null) {
+        created = DateTime.fromMillisecondsSinceEpoch(map['created_epoch']);
       }
     }
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toMap() => {
         'account_id': accountId,
         'username': username,
         'display_name': displayName,

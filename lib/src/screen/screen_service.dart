@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
+import '../email/email_service.dart';
 import 'screen_controller.dart';
 import 'screen_model.dart';
 import 'screen_presenter.dart';
@@ -16,8 +17,9 @@ class ScreenService extends ChangeNotifier {
   late final ScreenController controller;
   late final ScreenPresenter presenter;
   final AccountService _accountService;
+  final EmailService _emailService;
 
-  ScreenService(this._accountService) {
+  ScreenService(this._accountService, this._emailService) {
     controller = ScreenController(this);
     presenter = ScreenPresenter(this);
 

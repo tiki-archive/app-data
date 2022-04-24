@@ -6,7 +6,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:tiki_style/tiki_style.dart';
 
-import 'screen_view_widget_soon_img.dart';
+import '../view/screen_view_widget_soon_img.dart';
 
 class ScreenViewWidgetSoon extends StatelessWidget {
   static const String _title = "COMING SOON";

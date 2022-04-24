@@ -11,8 +11,6 @@ import 'account_repository.dart';
 class AccountService {
   late final AccountRepository _repository;
 
-  AccountService();
-
   Future<AccountService> open(Database database) async {
     if (!database.isOpen)
       throw ArgumentError.value(database, 'database', 'database is not open');
