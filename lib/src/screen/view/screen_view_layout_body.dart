@@ -18,7 +18,7 @@ class ScreenViewLayoutBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ScreenService service = Provider.of<ScreenService>(context);
-    bool isLinked = service.model.account != null;
+    bool isLinked = service.model.accounts.length > 0;
     return GestureDetector(
         child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
@@ -34,7 +34,7 @@ class ScreenViewLayoutBody extends StatelessWidget {
                         summary:
                             isLinked ? "All good!" : "Uh-oh. No data just yet!",
                         description: isLinked
-                            ? "Your account is linked now. See what data ${service.model.account?.provider} holds by tapping on the button below."
+                            ? "Your account is linked"
                             : "Get started by adding an account",
                         color: isLinked
                             ? ColorProvider.green

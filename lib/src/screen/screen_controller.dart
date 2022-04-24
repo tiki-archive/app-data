@@ -4,6 +4,8 @@
  */
 
 import '../account/account_model.dart';
+import '../provider/provider_enum.dart';
+import '../provider/provider_interface.dart';
 import 'screen_service.dart';
 
 class ScreenController {
@@ -11,8 +13,8 @@ class ScreenController {
 
   ScreenController(this.service);
 
-  Future<void> removeAccount(String email, String provider) =>
-      service.removeAccount(email, provider);
+  Future<void> removeAccount(ProviderEnum type, String? username) =>
+      service.removeAccount(type, username!);
 
   Future<void> saveAccount(AccountModel account) =>
       service.saveAccount(account);

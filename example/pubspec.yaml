@@ -10,7 +10,7 @@ dependencies:
     sdk: flutter
   logging: ^1.0.1
   uuid: ^3.0.5
-  data:
+  tiki_data:
     path: ../
 
 dev_dependencies:

@@ -74,4 +74,37 @@ class AccountModel {
         'modified_epoch': modified?.millisecondsSinceEpoch,
         'created_epoch': created?.millisecondsSinceEpoch
       };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AccountModel &&
+          runtimeType == other.runtimeType &&
+          accountId == other.accountId &&
+          username == other.username &&
+          displayName == other.displayName &&
+          email == other.email &&
+          provider == other.provider &&
+          accessToken == other.accessToken &&
+          accessTokenExpiration == other.accessTokenExpiration &&
+          refreshToken == other.refreshToken &&
+          refreshTokenExpiration == other.refreshTokenExpiration &&
+          shouldReconnect == other.shouldReconnect &&
+          modified == other.modified &&
+          created == other.created;
+
+  @override
+  int get hashCode =>
+      accountId.hashCode ^
+      username.hashCode ^
+      displayName.hashCode ^
+      email.hashCode ^
+      provider.hashCode ^
+      accessToken.hashCode ^
+      accessTokenExpiration.hashCode ^
+      refreshToken.hashCode ^
+      refreshTokenExpiration.hashCode ^
+      shouldReconnect.hashCode ^
+      modified.hashCode ^
+      created.hashCode;
 }

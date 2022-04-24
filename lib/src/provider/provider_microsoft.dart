@@ -10,20 +10,28 @@ import 'package:httpp/httpp.dart';
 import 'package:microsoft_provider/microsoft_provider.dart';
 
 import '../account/account_model.dart';
-import 'provider_enums.dart';
+import 'provider_enum.dart';
 import 'provider_interface.dart';
 
 class ProviderMicrosoft extends ProviderInterface<MicrosoftProviderModel> {
   final MicrosoftProvider _microsoft;
 
   ProviderMicrosoft(
-      {Function(MicrosoftProviderModel)? onLink,
+      {AccountModel? account,
+      Function(MicrosoftProviderModel)? onLink,
       Function(String?)? onUnlink,
       Httpp? httpp})
-      : _microsoft =
-            MicrosoftProvider(onLink: onLink, onUnlink: onUnlink, httpp: httpp);
-
-  ProviderMicrosoft.loggedIn(this._microsoft);
+      : _microsoft = account != null
+            ? MicrosoftProvider.loggedIn(
+                token: account.accessToken,
+                refreshToken: account.refreshToken,
+                email: account.email,
+                displayName: account.displayName,
+                onLink: onLink,
+                onUnlink: onUnlink,
+                httpp: httpp)
+            : MicrosoftProvider(
+                onLink: onLink, onUnlink: onUnlink, httpp: httpp);
 
   @override
   Future<bool> isConnected(AccountModel account) {

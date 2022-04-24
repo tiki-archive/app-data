@@ -10,20 +10,27 @@ import 'package:google_provider/google_provider.dart';
 import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
-import 'provider_enums.dart';
+import 'provider_enum.dart';
 import 'provider_interface.dart';
 
 class ProviderGoogle extends ProviderInterface<GoogleProviderModel> {
   final GoogleProvider _google;
 
   ProviderGoogle(
-      {Function(GoogleProviderModel)? onLink,
+      {AccountModel? account,
+      Function(GoogleProviderModel)? onLink,
       Function(String?)? onUnlink,
       Httpp? httpp})
-      : _google =
-            GoogleProvider(onLink: onLink, onUnlink: onUnlink, httpp: httpp);
-
-  ProviderGoogle.loggedIn(this._google);
+      : _google = account != null
+            ? GoogleProvider.loggedIn(
+                token: account.accessToken,
+                refreshToken: account.refreshToken,
+                email: account.email,
+                displayName: account.displayName,
+                onLink: onLink,
+                onUnlink: onUnlink,
+                httpp: httpp)
+            : GoogleProvider(onLink: onLink, onUnlink: onUnlink, httpp: httpp);
 
   @override
   Widget get widget => _google.accountWidget();
