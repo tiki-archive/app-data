@@ -21,6 +21,12 @@ dependencies:
     path: ../google_provider
   microsoft_provider:
     path: ../microsoft_provider
+  spam_cards:
+    path:
+      ../spam_cards
+  decision:
+    path:
+      ../decision
 
 dependency_overrides:
   sqflite:

@@ -26,7 +26,7 @@ class CompanyRepository {
           'security_score REAL, '
           'breach_score REAL, '
           'sensitivity_score REAL, '
-          'domain TEXT, '
+          'domain TEXT UNIQUE, '
           'created_epoch INTEGER NOT NULL, '
           'modified_epoch INTEGER NOT NULL);');
 

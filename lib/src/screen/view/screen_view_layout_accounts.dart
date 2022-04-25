@@ -27,6 +27,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
               margin: EdgeInsets.only(top: SizeProvider.instance.height(2)),
               child: ProviderGoogle(
                   account: account,
+                  httpp: service.httpp,
                   onLink: (model) =>
                       service.controller.saveAccount(ProviderGoogle.to(model)),
                   onUnlink: (email) => service.controller
@@ -37,6 +38,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
               margin: EdgeInsets.only(top: SizeProvider.instance.height(2)),
               child: ProviderMicrosoft(
                   account: account,
+                  httpp: service.httpp,
                   onLink: (model) => service.controller
                       .saveAccount(ProviderMicrosoft.to(model)),
                   onUnlink: (email) => service.controller

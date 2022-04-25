@@ -23,14 +23,13 @@ class EmailMsgRepository {
       _database.execute('CREATE TABLE IF NOT EXISTS $_table('
           'message_id INTEGER PRIMARY KEY AUTOINCREMENT, '
           'ext_message_id TEXT NOT NULL, '
-          'sender_id INTEGER NOT NULL, '
+          'sender_email TEXT NOT NULL, '
           'received_date_epoch INTEGER, '
           'opened_date_epoch INTEGER, '
-          'account TEXT, '
+          'to_email TEXT NOT NULL, '
           'created_epoch INTEGER NOT NULL, '
           'modified_epoch INTEGER NOT NULL, '
-          'FOREIGN KEY (sender_id) REFERENCES sender(sender_id), '
-          'UNIQUE (ext_message_id, account));');
+          'UNIQUE (ext_message_id, to_email));');
 
   Future<int> upsert(List<EmailMsgModel> messages) async {
     if (messages.isNotEmpty) {

@@ -22,7 +22,7 @@ class EmailSenderRepository {
   Future<void> createTable() =>
       _database.execute('CREATE TABLE IF NOT EXISTS $_table('
           'sender_id INTEGER PRIMARY KEY AUTOINCREMENT, '
-          'company_id INTEGER NOT NULL, '
+          'company_domain TEXT NOT NULL, '
           'name TEXT, '
           'email TEXT, '
           'category TEXT, '
@@ -32,8 +32,7 @@ class EmailSenderRepository {
           'updated_epoch INTEGER, '
           'unsubscribed_bool INTEGER, '
           'created_epoch INTEGER NOT NULL, '
-          'modified_epoch INTEGER NOT NULL, '
-          'FOREIGN KEY(company_id) REFERENCES company(company_id));');
+          'modified_epoch INTEGER NOT NULL);');
 
   Future<EmailSenderModel?> getByEmail(String email, {Transaction? txn}) async {
     final List<Map<String, Object?>> rows =

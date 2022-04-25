@@ -25,30 +25,30 @@ class EmailMsgModel {
       this.created,
       this.modified});
 
-  EmailMsgModel.fromJson(Map<String, dynamic>? json) {
-    if (json != null) {
-      messageId = json['message_id'];
-      extMessageId = json['ext_message_id'];
-      sender = EmailSenderModel.fromMap(json['sender']);
-      toEmail = json['to_email'];
-      if (json['received_date_epoch'] != null) {
+  EmailMsgModel.fromMap(Map<String, dynamic>? map) {
+    if (map != null) {
+      messageId = map['message_id'];
+      extMessageId = map['ext_message_id'];
+      sender = EmailSenderModel.fromMap(map['sender']);
+      toEmail = map['to_email'];
+      if (map['received_date_epoch'] != null) {
         receivedDate =
-            DateTime.fromMillisecondsSinceEpoch(json['received_date_epoch']);
+            DateTime.fromMillisecondsSinceEpoch(map['received_date_epoch']);
       }
-      if (json['opened_date_epoch'] != null) {
+      if (map['opened_date_epoch'] != null) {
         openedDate =
-            DateTime.fromMillisecondsSinceEpoch(json['opened_date_epoch']);
+            DateTime.fromMillisecondsSinceEpoch(map['opened_date_epoch']);
       }
-      if (json['modified_epoch'] != null) {
-        modified = DateTime.fromMillisecondsSinceEpoch(json['modified_epoch']);
+      if (map['modified_epoch'] != null) {
+        modified = DateTime.fromMillisecondsSinceEpoch(map['modified_epoch']);
       }
-      if (json['created_epoch'] != null) {
-        created = DateTime.fromMillisecondsSinceEpoch(json['created_epoch']);
+      if (map['created_epoch'] != null) {
+        created = DateTime.fromMillisecondsSinceEpoch(map['created_epoch']);
       }
     }
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       'message_id': messageId,
       'ext_message_id': extMessageId,

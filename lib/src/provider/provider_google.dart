@@ -10,18 +10,21 @@ import 'package:google_provider/google_provider.dart';
 import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
+import '../email/msg/email_msg_model.dart';
 import 'provider_enum.dart';
 import 'provider_interface.dart';
 
 class ProviderGoogle extends ProviderInterface<GoogleProviderModel> {
   final GoogleProvider _google;
+  final Httpp _httpp;
 
   ProviderGoogle(
       {AccountModel? account,
       Function(GoogleProviderModel)? onLink,
       Function(String?)? onUnlink,
       Httpp? httpp})
-      : _google = account != null
+      : _httpp = httpp ?? Httpp(),
+        _google = account != null
             ? GoogleProvider.loggedIn(
                 token: account.accessToken,
                 refreshToken: account.refreshToken,
@@ -53,4 +56,57 @@ class ProviderGoogle extends ProviderInterface<GoogleProviderModel> {
         accessTokenExpiration: raw.accessTokenExp,
         refreshToken: raw.refreshToken,
       );
+
+  @override
+  Future<void> getInbox(
+      {required AccountModel account,
+      DateTime? since,
+      required Function(List<EmailMsgModel> messages) onResult,
+      required Function() onFinish}) {
+    return GoogleProvider.loggedIn(
+            email: account.email,
+            token: account.accessToken,
+            refreshToken: account.refreshToken,
+            displayName: account.displayName,
+            httpp: _httpp)
+        .fetchInbox(
+            onResult: (msgIdList) => onResult(msgIdList
+                .map((msgId) => EmailMsgModel(extMessageId: msgId))
+                .toList()),
+            onFinish: onFinish);
+  }
+
+  @override
+  Future<void> getMessages(
+      {required AccountModel account,
+      required List<String> messageIds,
+      required Function(EmailMsgModel message) onResult,
+      required Function() onFinish}) {
+    return GoogleProvider.loggedIn(
+            email: account.email,
+            token: account.accessToken,
+            refreshToken: account.refreshToken,
+            displayName: account.displayName,
+            httpp: _httpp)
+        .fetchMessages(
+            messageIds: messageIds,
+            onResult: (msg) => onResult(EmailMsgModel.fromMap(msg.toJson())),
+            onFinish: onFinish);
+  }
+
+  @override
+  Future<void> send(
+      {required AccountModel account,
+      String? body,
+      required String to,
+      String? subject,
+      Function(bool success)? onResult}) {
+    return GoogleProvider.loggedIn(
+            email: account.email,
+            token: account.accessToken,
+            refreshToken: account.refreshToken,
+            displayName: account.displayName,
+            httpp: _httpp)
+        .sendEmail(body: body, to: to, subject: subject, onResult: onResult);
+  }
 }
