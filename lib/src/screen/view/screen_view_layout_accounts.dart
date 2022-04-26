@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:tiki_style/tiki_style.dart';
 
 import '../../account/account_model.dart';
-import '../../provider/provider_enum.dart';
+import '../../account/account_model_provider.dart';
 import '../../provider/provider_google.dart';
 import '../../provider/provider_microsoft.dart';
 import '../screen_service.dart';
@@ -21,7 +21,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
     ScreenService service = Provider.of<ScreenService>(context);
     AccountModel? account = service.model.first();
     return Column(children: [
-      account != null && account.provider != ProviderEnum.google.value
+      account != null && account.provider != AccountModelProvider.google.value
           ? Container()
           : Container(
               margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
@@ -30,9 +30,10 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
                   httpp: service.httpp,
                   onLink: (model) =>
                       service.controller.saveAccount(ProviderGoogle.to(model)),
-                  onUnlink: (email) => service.controller
-                      .removeAccount(ProviderEnum.google, email)).widget),
-      account != null && account.provider != ProviderEnum.microsoft.value
+                  onUnlink: (email) => service.controller.removeAccount(
+                      AccountModelProvider.google, email)).widget),
+      account != null &&
+              account.provider != AccountModelProvider.microsoft.value
           ? Container()
           : Container(
               margin: EdgeInsets.only(top: SizeProvider.instance.height(15)),
@@ -41,8 +42,8 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
                   httpp: service.httpp,
                   onLink: (model) => service.controller
                       .saveAccount(ProviderMicrosoft.to(model)),
-                  onUnlink: (email) => service.controller
-                      .removeAccount(ProviderEnum.google, email)).widget),
+                  onUnlink: (email) => service.controller.removeAccount(
+                      AccountModelProvider.google, email)).widget),
     ]);
   }
 }

@@ -9,12 +9,12 @@ import 'package:httpp/httpp.dart';
 import 'package:spam_cards/spam_cards.dart';
 
 import '../account/account_model.dart';
+import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../email/email_interface.dart';
 import '../email/email_service.dart';
 import '../email/sender/email_sender_model.dart';
 import '../fetch/fetch_service.dart';
-import '../provider/provider_enum.dart';
 import '../provider/provider_google.dart';
 import '../provider/provider_interface.dart';
 import '../provider/provider_microsoft.dart';
@@ -53,7 +53,7 @@ class ScreenService extends ChangeNotifier {
     fetchInbox(account);
   }
 
-  Future<void> removeAccount(ProviderEnum type, String username) async {
+  Future<void> removeAccount(AccountModelProvider type, String username) async {
     model.remove(type, username);
     await _accountService.remove(username, type.value);
     _decision.setLinked(false);
@@ -67,7 +67,7 @@ class ScreenService extends ChangeNotifier {
 
   _addSpamCards(List messages) {
     _spamCards.addCards(
-        provider: model.first()!.provider!,
+        provider: model.first()!.provider!.value,
         messages: messages,
         onUnsubscribe: _unsubscribeFromSpam,
         onKeep: _keepReceiving);
@@ -111,10 +111,10 @@ ${account.displayName ?? ''}<br />
   }
 
   ProviderInterface? _getEmailInterface(AccountModel account) {
-    switch (ProviderEnum.fromValue(account.provider)) {
-      case ProviderEnum.google:
+    switch (account.provider) {
+      case AccountModelProvider.google:
         return ProviderGoogle(account: account, httpp: httpp);
-      case ProviderEnum.microsoft:
+      case AccountModelProvider.microsoft:
         return ProviderMicrosoft(account: account, httpp: httpp);
       default:
         return null;

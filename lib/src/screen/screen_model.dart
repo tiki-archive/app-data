@@ -4,7 +4,7 @@
  */
 
 import '../account/account_model.dart';
-import '../provider/provider_enum.dart';
+import '../account/account_model_provider.dart';
 
 class ScreenModel {
   Set<AccountModel> _accounts;
@@ -19,7 +19,7 @@ class ScreenModel {
 
   void addAll(List<AccountModel> accounts) => _accounts.addAll(accounts);
 
-  void remove(ProviderEnum type, String username) =>
+  void remove(AccountModelProvider type, String username) =>
       _accounts.removeWhere((account) =>
           account.provider == type.value && account.username == username);
 }

@@ -10,11 +10,11 @@ import 'package:httpp/httpp.dart';
 import 'package:microsoft_provider/microsoft_provider.dart';
 
 import '../account/account_model.dart';
+import '../account/account_model_provider.dart';
 import '../email/msg/email_msg_model.dart';
-import 'provider_enum.dart';
 import 'provider_interface.dart';
 
-class ProviderMicrosoft extends ProviderInterface<MicrosoftProviderModel> {
+class ProviderMicrosoft extends ProviderInterface {
   final MicrosoftProvider _microsoft;
   final Httpp _httpp;
 
@@ -52,7 +52,7 @@ class ProviderMicrosoft extends ProviderInterface<MicrosoftProviderModel> {
         username: raw.email,
         email: raw.email,
         displayName: raw.displayName,
-        provider: ProviderEnum.microsoft.value,
+        provider: AccountModelProvider.microsoft,
         accessToken: raw.token,
         accessTokenExpiration: raw.accessTokenExp,
         refreshToken: raw.refreshToken,

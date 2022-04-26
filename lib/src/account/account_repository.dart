@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'account_model.dart';
+import 'account_model_provider.dart';
 
 class AccountRepository {
   static const String _table = 'auth_service_account';
@@ -56,12 +57,12 @@ class AccountRepository {
   }
 
   Future<AccountModel?> getByProviderAndUsername(
-      String provider, String username,
+      AccountModelProvider provider, String username,
       {Transaction? txn}) async {
     final List<Map<String, Object?>> rows = await (txn ?? _database).query(
         _table,
         where: "provider = ? AND username = ?",
-        whereArgs: [provider, username]);
+        whereArgs: [provider.value, username]);
     if (rows.isEmpty) return null;
     return AccountModel.fromMap(rows[0]);
   }

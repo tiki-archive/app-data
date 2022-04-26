@@ -3,12 +3,14 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'account_model_provider.dart';
+
 class AccountModel {
   int? accountId;
   String? username;
   String? displayName;
   String? email;
-  String? provider;
+  AccountModelProvider? provider;
   String? accessToken;
   DateTime? accessTokenExpiration;
   String? refreshToken;
@@ -37,10 +39,12 @@ class AccountModel {
       username = map['username'];
       displayName = map['display_name'];
       email = map['email'];
-      provider = map['provider'];
       accessToken = map['access_token'];
       refreshToken = map['refresh_token'];
       shouldReconnect = map['should_reconnect'] == 1 ? true : false;
+      if (map['provider'] != null) {
+        provider = AccountModelProvider.fromValue(map['provider']);
+      }
       if (map['access_token_expiration'] != null) {
         accessTokenExpiration =
             DateTime.fromMillisecondsSinceEpoch(map['access_token_expiration']);
@@ -63,7 +67,7 @@ class AccountModel {
         'username': username,
         'display_name': displayName,
         'email': email,
-        'provider': provider,
+        'provider': provider?.value,
         'access_token': accessToken,
         'access_token_expiration':
             accessTokenExpiration?.millisecondsSinceEpoch,

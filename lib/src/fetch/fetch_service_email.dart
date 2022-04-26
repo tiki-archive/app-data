@@ -8,12 +8,12 @@ import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../account/account_model.dart';
+import '../account/account_model_provider.dart';
 import '../company/company_service.dart';
 import '../email/email_interface.dart';
 import '../email/email_service.dart';
 import '../email/msg/email_msg_model.dart';
 import '../email/sender/email_sender_model.dart';
-import '../provider/provider_enum.dart';
 import '../provider/provider_google.dart';
 import '../provider/provider_interface.dart';
 import '../provider/provider_microsoft.dart';
@@ -186,12 +186,11 @@ class FetchServiceEmail {
     return interface != null && await interface.isConnected(account);
   }
 
-  FetchApiEnum? _apiFromProvider(String? s) {
-    ProviderEnum? provider = ProviderEnum.fromValue(s);
+  FetchApiEnum? _apiFromProvider(AccountModelProvider? provider) {
     switch (provider) {
-      case ProviderEnum.google:
+      case AccountModelProvider.google:
         return FetchApiEnum.gmail;
-      case ProviderEnum.microsoft:
+      case AccountModelProvider.microsoft:
         return FetchApiEnum.outlook;
       default:
         return null;
@@ -199,10 +198,10 @@ class FetchServiceEmail {
   }
 
   ProviderInterface? _getInterface(AccountModel account) {
-    switch (ProviderEnum.fromValue(account.provider)) {
-      case ProviderEnum.google:
+    switch (account.provider) {
+      case AccountModelProvider.google:
         return ProviderGoogle(account: account, httpp: _httpp);
-      case ProviderEnum.microsoft:
+      case AccountModelProvider.microsoft:
         return ProviderMicrosoft(account: account, httpp: _httpp);
       default:
         return null;

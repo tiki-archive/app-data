@@ -10,17 +10,17 @@ import 'package:google_provider/google_provider.dart';
 import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
+import '../account/account_model_provider.dart';
 import '../email/msg/email_msg_model.dart';
-import 'provider_enum.dart';
 import 'provider_interface.dart';
 
-class ProviderGoogle extends ProviderInterface<GoogleProviderModel> {
+class ProviderGoogle extends ProviderInterface {
   final GoogleProvider _google;
   final Httpp _httpp;
 
   ProviderGoogle(
       {AccountModel? account,
-      Function(GoogleProviderModel)? onLink,
+      Function(GoogleProviderModel account)? onLink,
       Function(String?)? onUnlink,
       Httpp? httpp})
       : _httpp = httpp ?? Httpp(),
@@ -51,7 +51,7 @@ class ProviderGoogle extends ProviderInterface<GoogleProviderModel> {
         username: raw.email,
         email: raw.email,
         displayName: raw.displayName,
-        provider: ProviderEnum.google.value,
+        provider: AccountModelProvider.google,
         accessToken: raw.token,
         accessTokenExpiration: raw.accessTokenExp,
         refreshToken: raw.refreshToken,
