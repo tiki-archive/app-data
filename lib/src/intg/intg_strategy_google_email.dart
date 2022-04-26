@@ -7,11 +7,12 @@ import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
 import '../email/msg/email_msg_model.dart';
-import 'strategy_google.dart';
-import 'strategy_interface_email.dart';
+import 'intg_strategy_google.dart';
+import 'intg_strategy_interface_email.dart';
 
-class StrategyGoogleEmail extends StrategyGoogle with StrategyInterfaceEmail {
-  StrategyGoogleEmail(Httpp? httpp) : super(httpp);
+class IntgStrategyGoogleEmail extends IntgStrategyGoogle
+    with IntgStrategyInterfaceEmail {
+  IntgStrategyGoogleEmail(Httpp? httpp) : super(httpp);
 
   @override
   Future<void> getInbox(

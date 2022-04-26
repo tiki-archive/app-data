@@ -8,10 +8,10 @@ import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
 
-abstract class StrategyInterface<S, M> {
+abstract class IntgStrategyInterface<S, M> {
   final Httpp? httpp;
 
-  StrategyInterface(this.httpp);
+  IntgStrategyInterface(this.httpp);
 
   S construct(
       {AccountModel? account,

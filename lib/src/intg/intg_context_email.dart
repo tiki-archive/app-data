@@ -8,12 +8,12 @@ import 'package:httpp/httpp.dart';
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../email/msg/email_msg_model.dart';
-import 'strategy_context.dart';
-import 'strategy_google_email.dart';
-import 'strategy_interface_email.dart';
+import 'intg_context.dart';
+import 'intg_strategy_google_email.dart';
+import 'intg_strategy_interface_email.dart';
 
-class StrategyContextEmail extends StrategyContext {
-  StrategyContextEmail({Httpp? httpp}) : super(httpp: httpp);
+class IntgContextEmail extends IntgContext {
+  IntgContextEmail({Httpp? httpp}) : super(httpp: httpp);
 
   Future<void> getInbox(
           {required AccountModel account,
@@ -50,10 +50,10 @@ class StrategyContextEmail extends StrategyContext {
           subject: subject,
           onResult: onResult);
 
-  StrategyInterfaceEmail? _strategy(AccountModelProvider? provider) {
+  IntgStrategyInterfaceEmail? _strategy(AccountModelProvider? provider) {
     switch (provider) {
       case AccountModelProvider.google:
-        return StrategyGoogleEmail(httpp);
+        return IntgStrategyGoogleEmail(httpp);
       default:
         return null;
     }

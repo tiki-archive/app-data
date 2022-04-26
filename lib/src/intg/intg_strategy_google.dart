@@ -11,11 +11,11 @@ import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
-import 'strategy_interface.dart';
+import 'intg_strategy_interface.dart';
 
-class StrategyGoogle
-    extends StrategyInterface<GoogleProvider, GoogleProviderModel> {
-  StrategyGoogle(Httpp? httpp) : super(httpp);
+class IntgStrategyGoogle
+    extends IntgStrategyInterface<GoogleProvider, GoogleProviderModel> {
+  IntgStrategyGoogle(Httpp? httpp) : super(httpp);
 
   @override
   GoogleProvider construct(

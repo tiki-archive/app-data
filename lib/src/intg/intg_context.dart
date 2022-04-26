@@ -8,13 +8,13 @@ import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
-import 'strategy_google.dart';
-import 'strategy_interface.dart';
+import 'intg_strategy_google.dart';
+import 'intg_strategy_interface.dart';
 
-class StrategyContext {
+class IntgContext {
   final Httpp? httpp;
 
-  StrategyContext({this.httpp});
+  IntgContext({this.httpp});
 
   Future<bool> isConnected(AccountModel account,
           {Function(
@@ -33,10 +33,10 @@ class StrategyContext {
       _strategy(account?.provider ?? provider)!
           .widget(account: account, onLink: onLink, onUnlink: onUnlink);
 
-  StrategyInterface? _strategy(AccountModelProvider? provider) {
+  IntgStrategyInterface? _strategy(AccountModelProvider? provider) {
     switch (provider) {
       case AccountModelProvider.google:
-        return StrategyGoogle(httpp);
+        return IntgStrategyGoogle(httpp);
       default:
         return null;
     }

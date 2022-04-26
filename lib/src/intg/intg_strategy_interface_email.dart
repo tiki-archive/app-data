@@ -6,7 +6,7 @@
 import '../account/account_model.dart';
 import '../email/msg/email_msg_model.dart';
 
-abstract class StrategyInterfaceEmail {
+abstract class IntgStrategyInterfaceEmail {
   @override
   Future<void> getInbox(
       {required AccountModel account,
