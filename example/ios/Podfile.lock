@@ -1,8 +1,22 @@
 PODS:
+  - AppAuth (1.4.0):
+    - AppAuth/Core (= 1.4.0)
+    - AppAuth/ExternalUserAgent (= 1.4.0)
+  - AppAuth/Core (1.4.0)
+  - AppAuth/ExternalUserAgent (1.4.0)
   - Flutter (1.0.0)
+  - flutter_appauth (0.0.1):
+    - AppAuth (= 1.4.0)
+    - Flutter
   - FMDB/SQLCipher (2.7.5):
     - SQLCipher
   - integration_test (0.0.1):
+    - Flutter
+  - path_provider_ios (0.0.1):
+    - Flutter
+  - "permission_handler (5.1.0+2)":
+    - Flutter
+  - share_plus (0.0.1):
     - Flutter
   - sqflite (0.0.2):
     - Flutter
@@ -17,35 +31,65 @@ PODS:
   - SQLCipher/common (4.4.2)
   - SQLCipher/standard (4.4.2):
     - SQLCipher/common
+  - tiki_kv (0.0.1):
+    - Flutter
+  - url_launcher_ios (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
+  - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
   - sqflite_sqlcipher (from `.symlinks/plugins/sqflite_sqlcipher/ios`)
+  - tiki_kv (from `.symlinks/plugins/tiki_kv/ios`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
   trunk:
+    - AppAuth
     - FMDB
     - SQLCipher
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  flutter_appauth:
+    :path: ".symlinks/plugins/flutter_appauth/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
+  path_provider_ios:
+    :path: ".symlinks/plugins/path_provider_ios/ios"
+  permission_handler:
+    :path: ".symlinks/plugins/permission_handler/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
   sqflite_sqlcipher:
     :path: ".symlinks/plugins/sqflite_sqlcipher/ios"
+  tiki_kv:
+    :path: ".symlinks/plugins/tiki_kv/ios"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
+  AppAuth: 31bcec809a638d7bd2f86ea8a52bd45f6e81e7c7
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  flutter_appauth: 05c3778a1e4ae23364dd2ef37cbae14b244f646b
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   integration_test: a1e7d09bd98eca2fc37aefd79d4f41ad37bdbbe5
+  path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
+  permission_handler: ccb20a9fad0ee9b1314a52b70b76b473c5f8dab0
+  share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
   sqflite: c0667567fd3e682beb9509976c08bc2325429aab
   sqflite_sqlcipher: 70eb7fd8d4f0b0352d0bde5cf345b810737f54bb
   SQLCipher: 1ab0b9486a77d141e72e92ff30681926ed79c07a
+  tiki_kv: 0c122da8304726ce43fc8a129e7a1babe43bb30c
+  url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 

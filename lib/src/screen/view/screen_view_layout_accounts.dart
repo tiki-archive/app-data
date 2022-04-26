@@ -24,7 +24,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
       account != null && account.provider != ProviderEnum.google.value
           ? Container()
           : Container(
-              margin: EdgeInsets.only(top: SizeProvider.instance.height(2)),
+              margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
               child: ProviderGoogle(
                   account: account,
                   httpp: service.httpp,
@@ -35,7 +35,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
       account != null && account.provider != ProviderEnum.microsoft.value
           ? Container()
           : Container(
-              margin: EdgeInsets.only(top: SizeProvider.instance.height(2)),
+              margin: EdgeInsets.only(top: SizeProvider.instance.height(15)),
               child: ProviderMicrosoft(
                   account: account,
                   httpp: service.httpp,

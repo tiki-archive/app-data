@@ -17,7 +17,7 @@ import 'src/enrich/enrich_service.dart';
 import 'src/fetch/fetch_service.dart';
 import 'src/screen/screen_service.dart';
 
-class Data {
+class TikiData {
   final Logger _log = Logger('data');
 
   final EnrichService _enrichService;
@@ -29,13 +29,13 @@ class Data {
 
   final Httpp? _httpp;
 
-  Data(
+  TikiData(
       {Httpp? httpp,
       Future<void> Function(void Function(String?)? onSuccess)? refresh})
       : _enrichService = EnrichService(httpp: httpp, refresh: refresh),
         _httpp = httpp;
 
-  Future<Data> init(
+  Future<TikiData> init(
       Database database, Decision decision, SpamCards spamCards) async {
     _companyService = await CompanyService(_enrichService).open(database);
     _accountService = await AccountService().open(database);

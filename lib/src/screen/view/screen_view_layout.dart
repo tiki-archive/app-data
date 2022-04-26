@@ -4,7 +4,7 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:style/style.dart';
+import 'package:tiki_style/tiki_style.dart';
 
 import 'screen_view_layout_body.dart';
 
@@ -21,7 +21,9 @@ class ScreenViewLayout extends StatelessWidget {
       Container(color: ColorProvider.greyOne),
       SafeArea(
           child: Column(children: [
-        headerBar,
+        Padding(
+              padding: EdgeInsets.only(bottom: SizeProvider.instance.height(35)),
+              child: headerBar),
         Expanded(child: const ScreenViewLayoutBody())
       ]))
     ])));

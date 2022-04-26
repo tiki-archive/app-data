@@ -24,7 +24,7 @@ class ScreenViewLayoutBody extends StatelessWidget {
             physics: const ClampingScrollPhysics(),
             child: Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: SizeProvider.instance.width(8)),
+                    horizontal: SizeProvider.instance.width(26)),
                 child: Column(
                   children: [
                     ScreenViewWidgetState(
@@ -42,7 +42,7 @@ class ScreenViewLayoutBody extends StatelessWidget {
                     const ScreenViewLayoutAccounts(),
                     Container(
                         margin: EdgeInsets.only(
-                            top: SizeProvider.instance.height(2)),
+                            top: SizeProvider.instance.height(19)),
                         child: const ScreenViewWidgetSoon())
                   ],
                 ))));

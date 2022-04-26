@@ -29,39 +29,32 @@ class ScreenViewWidgetState extends StatelessWidget {
       children: [
         Text(
           _title,
-          style: TextStyle(
-              fontFamily: TextProvider.familyKoara,
-              fontWeight: FontWeight.bold,
-              fontSize: SizeProvider.instance.text(22),
-              color: ColorProvider.tikiBlue),
+          style: TextProvider.headline2.apply(color: ColorProvider.tikiBlue),
         ),
         Container(
             margin: EdgeInsets.only(top: SizeProvider.instance.height(1)),
             child: Image(
               image: image.image,
-              height: SizeProvider.instance.height(17),
+              height: SizeProvider.instance.height(131),
               fit: BoxFit.fitHeight,
             )),
         Container(
-            margin: EdgeInsets.only(top: SizeProvider.instance.height(1)),
+            margin: EdgeInsets.only(top: SizeProvider.instance.height(8)),
             child: Text(
               summary,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontFamily: TextProvider.familyKoara,
-                  fontWeight: FontWeight.bold,
-                  fontSize: SizeProvider.instance.text(16),
-                  color: color),
+              style: TextProvider.headline3.apply(color: ColorProvider.blue),
             )),
         Container(
-            margin: EdgeInsets.only(top: SizeProvider.instance.height(0.75)),
+            margin: EdgeInsets.only(top: SizeProvider.instance.height(8)),
             child: Text(description,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontFamily: TextProvider.familyNunitoSans,
                     fontWeight: FontWeight.w600,
                     color: ColorProvider.tikiBlue,
-                    fontSize: SizeProvider.instance.text(11)))),
+                    fontSize: SizeProvider.instance.text(14),
+                    package: 'tiki_style'))),
       ],
     );
   }

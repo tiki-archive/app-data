@@ -17,23 +17,25 @@ class ScreenViewWidgetSoonImg extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-        width: SizeProvider.instance.width(16),
+        width: SizeProvider.instance.width(61),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image(
               image: image.image,
-              height: SizeProvider.instance.height(5.5),
+              height: SizeProvider.instance.height(44.6),
               fit: BoxFit.fitHeight,
             ),
             Container(
-                margin: EdgeInsets.only(top: SizeProvider.instance.height(0.5)),
+                margin: EdgeInsets.only(top: SizeProvider.instance.height(7)),
                 child: Text(
                   label,
                   style: TextStyle(
+                    fontFamily: TextProvider.familyNunitoSans,
                       fontWeight: FontWeight.w600,
-                      fontSize: SizeProvider.instance.text(9),
-                      color: ColorProvider.tikiBlue),
+                      fontSize: SizeProvider.instance.text(12),
+                      color: ColorProvider.tikiBlue,
+                      package: 'tiki_style'),
                 )),
           ],
         ));

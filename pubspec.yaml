@@ -14,7 +14,8 @@ dependencies:
     sdk: flutter
   logging: ^1.0.1
   provider: ^6.0.2
-  tiki_style: ^0.0.5
+  tiki_style:
+    path: ../style
   sqflite_sqlcipher: ^2.1.0
   httpp: ^0.0.3
   google_provider:
@@ -22,11 +23,9 @@ dependencies:
   microsoft_provider:
     path: ../microsoft_provider
   spam_cards:
-    path:
-      ../spam_cards
+    path: ../spam_cards
   decision:
-    path:
-      ../decision
+    path: ../decision
 
 dependency_overrides:
   sqflite:

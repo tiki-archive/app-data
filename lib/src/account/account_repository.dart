@@ -32,7 +32,6 @@ class AccountRepository {
           'refresh_token_expiration INTEGER, '
           'should_reconnect INTEGER, '
           'scopes TEXT, '
-          'provider TEXT, '
           'created_epoch INTEGER NOT NULL, '
           'modified_epoch INTEGER NOT NULL );');
 
