@@ -9,8 +9,7 @@ import 'package:tiki_style/tiki_style.dart';
 
 import '../../account/account_model.dart';
 import '../../account/account_model_provider.dart';
-import '../../provider/provider_google.dart';
-import '../../provider/provider_microsoft.dart';
+import '../../intg/intg_context.dart';
 import '../screen_service.dart';
 
 class ScreenViewLayoutAccounts extends StatelessWidget {
@@ -19,31 +18,29 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ScreenService service = Provider.of<ScreenService>(context);
-    AccountModel? account = service.model.first();
+    AccountModel? account = service.model.account;
     return Column(children: [
       account != null && account.provider != AccountModelProvider.google.value
           ? Container()
           : Container(
               margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
-              child: ProviderGoogle(
+              child: IntgContext(httpp: service.httpp).widget(
                   account: account,
-                  httpp: service.httpp,
-                  onLink: (model) =>
-                      service.controller.saveAccount(ProviderGoogle.to(model)),
-                  onUnlink: (email) => service.controller.removeAccount(
-                      AccountModelProvider.google, email)).widget),
+                  provider: AccountModelProvider.google,
+                  onLink: (account) => service.controller.saveAccount(account),
+                  onUnlink: (email) => service.controller
+                      .removeAccount(AccountModelProvider.google, email))),
       account != null &&
               account.provider != AccountModelProvider.microsoft.value
           ? Container()
           : Container(
               margin: EdgeInsets.only(top: SizeProvider.instance.height(15)),
-              child: ProviderMicrosoft(
+              child: IntgContext(httpp: service.httpp).widget(
                   account: account,
-                  httpp: service.httpp,
-                  onLink: (model) => service.controller
-                      .saveAccount(ProviderMicrosoft.to(model)),
-                  onUnlink: (email) => service.controller.removeAccount(
-                      AccountModelProvider.google, email)).widget),
+                  provider: AccountModelProvider.microsoft,
+                  onLink: (account) => service.controller.saveAccount(account),
+                  onUnlink: (email) => service.controller
+                      .removeAccount(AccountModelProvider.google, email))),
     ]);
   }
 }

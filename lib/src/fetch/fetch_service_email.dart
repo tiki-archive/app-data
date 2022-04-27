@@ -3,20 +3,21 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'package:decision/decision.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
+import 'package:spam_cards/spam_cards.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../company/company_service.dart';
-import '../email/email_interface.dart';
+import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
 import '../email/msg/email_msg_model.dart';
 import '../email/sender/email_sender_model.dart';
-import '../provider/provider_google.dart';
-import '../provider/provider_interface.dart';
-import '../provider/provider_microsoft.dart';
+import '../intg/intg_context.dart';
+import '../intg/intg_context_email.dart';
 import 'fetch_api_enum.dart';
 import 'fetch_last_model.dart';
 import 'fetch_last_repository.dart';
@@ -30,10 +31,14 @@ class FetchServiceEmail {
   final Httpp _httpp;
   final EmailService _emailService;
   final CompanyService _companyService;
+  final SpamCards _spamCards;
+  final Decision _decision;
 
   final Set<int> _processMutex = {};
 
-  FetchServiceEmail(this._emailService, this._companyService, {Httpp? httpp})
+  FetchServiceEmail(
+      this._emailService, this._companyService, this._spamCards, this._decision,
+      {Httpp? httpp})
       : _httpp = httpp ?? Httpp();
 
   Future<FetchServiceEmail> init(Database database) async {
@@ -51,9 +56,7 @@ class FetchServiceEmail {
         ' started on: ' +
         DateTime.now().toIso8601String());
 
-    EmailInterface? emailInterface = await _getInterface(account);
-    if (emailInterface == null) throw 'Invalid email interface';
-    if (!await _isConnected(account)) {
+    if (!await IntgContext(httpp: _httpp).isConnected(account)) {
       throw 'ApiOauthAccount ${account.provider} not connected.';
     }
 
@@ -64,7 +67,7 @@ class FetchServiceEmail {
     if (since == null ||
         DateTime.now().subtract(const Duration(days: 1)).isAfter(since)) {
       DateTime fetchStart = DateTime.now();
-      await emailInterface.getInbox(
+      await IntgContextEmail(httpp: _httpp).getInbox(
           account: account,
           since: since,
           onResult: (messages) async {
@@ -99,15 +102,18 @@ class FetchServiceEmail {
           (account.email ?? '') +
           ' started on: ' +
           DateTime.now().toIso8601String());
-      _asyncProcess(account, onFinish: onFinish);
+      _asyncProcess(account, onFinish: (list) {
+        DecisionStrategySpam(_decision, _spamCards, _emailService,
+                httpp: _httpp)
+            .addSpamCards(account, list);
+        if (onFinish != null) onFinish(list);
+      });
     }
   }
 
   Future<void> _asyncProcess(AccountModel account,
       {Function(List)? onFinish}) async {
-    EmailInterface? emailInterface = await _getInterface(account);
-    if (emailInterface == null) throw 'Invalid email interface';
-    if (!await _isConnected(account)) {
+    if (!await IntgContext(httpp: _httpp).isConnected(account)) {
       throw 'ApiOauthAccount ${account.provider} not connected.';
     }
 
@@ -125,7 +131,7 @@ class FetchServiceEmail {
           .toList();
       List<EmailMsgModel> fetched = List.empty(growable: true);
       List<EmailMsgModel> save = List.empty(growable: true);
-      await emailInterface.getMessages(
+      await IntgContextEmail(httpp: _httpp).getMessages(
           account: account,
           messageIds: ids,
           onResult: (message) {
@@ -181,28 +187,12 @@ class FetchServiceEmail {
     }
   }
 
-  Future<bool> _isConnected(AccountModel account) async {
-    ProviderInterface? interface = _getInterface(account);
-    return interface != null && await interface.isConnected(account);
-  }
-
   FetchApiEnum? _apiFromProvider(AccountModelProvider? provider) {
     switch (provider) {
       case AccountModelProvider.google:
         return FetchApiEnum.gmail;
       case AccountModelProvider.microsoft:
         return FetchApiEnum.outlook;
-      default:
-        return null;
-    }
-  }
-
-  ProviderInterface? _getInterface(AccountModel account) {
-    switch (account.provider) {
-      case AccountModelProvider.google:
-        return ProviderGoogle(account: account, httpp: _httpp);
-      case AccountModelProvider.microsoft:
-        return ProviderMicrosoft(account: account, httpp: _httpp);
       default:
         return null;
     }

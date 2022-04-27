@@ -9,9 +9,9 @@ import 'package:tiki_style/tiki_style.dart';
 import 'screen_view_layout_body.dart';
 
 class ScreenViewLayout extends StatelessWidget {
-  final Widget headerBar;
+  final Widget? headerBar;
 
-  const ScreenViewLayout(this.headerBar);
+  const ScreenViewLayout({this.headerBar});
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +21,10 @@ class ScreenViewLayout extends StatelessWidget {
       Container(color: ColorProvider.greyOne),
       SafeArea(
           child: Column(children: [
-        Padding(
-              padding: EdgeInsets.only(bottom: SizeProvider.instance.height(35)),
+        if (headerBar != null)
+          Padding(
+              padding:
+                  EdgeInsets.only(bottom: SizeProvider.instance.height(35)),
               child: headerBar),
         Expanded(child: const ScreenViewLayoutBody())
       ]))

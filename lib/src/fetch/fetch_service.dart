@@ -3,8 +3,10 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'package:decision/decision.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
+import 'package:spam_cards/spam_cards.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../account/account_model.dart';
@@ -18,11 +20,15 @@ class FetchService {
   late final FetchServiceEmail email;
 
   Future<FetchService> init(
-      {required EmailService emailService,
-      required CompanyService companyService,
-      required Database database,
-      Httpp? httpp}) async {
-    email = await FetchServiceEmail(emailService, companyService, httpp: httpp)
+      EmailService emailService,
+      CompanyService companyService,
+      Database database,
+      Decision decision,
+      SpamCards spamCards,
+      {Httpp? httpp}) async {
+    email = await FetchServiceEmail(
+            emailService, companyService, spamCards, decision,
+            httpp: httpp)
         .init(database);
     return this;
   }

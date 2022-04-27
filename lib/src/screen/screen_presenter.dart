@@ -14,8 +14,8 @@ class ScreenPresenter {
 
   ScreenPresenter(this.service);
 
-  ChangeNotifierProvider<ScreenService> render(Widget headerBar) {
+  ChangeNotifierProvider<ScreenService> render({Widget? headerBar}) {
     return ChangeNotifierProvider.value(
-        value: service, child: ScreenViewLayout(headerBar));
+        value: service, child: ScreenViewLayout(headerBar: headerBar));
   }
 }

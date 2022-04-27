@@ -18,7 +18,7 @@ class ScreenViewLayoutBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ScreenService service = Provider.of<ScreenService>(context);
-    bool isLinked = service.model.accounts.length > 0;
+    bool isLinked = service.model.account != null;
     return GestureDetector(
         child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
