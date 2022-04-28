@@ -36,8 +36,8 @@ class TikiData {
     _accountService = await AccountService().open(database);
     _emailService = await EmailService().open(database);
 
-    _fetchService = await FetchService().init(
-        _emailService, _companyService, database, decision, spamCards,
+    _fetchService = await FetchService().init(_emailService, _companyService,
+        database, decision, spamCards, _accountService,
         httpp: httpp);
 
     _screenService = await ScreenService(_accountService, decision, fetchInbox,

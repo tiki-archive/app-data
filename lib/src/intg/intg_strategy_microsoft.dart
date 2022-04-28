@@ -6,21 +6,21 @@
 import 'dart:async';
 
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:google_provider/google_provider.dart';
 import 'package:httpp/httpp.dart';
+import 'package:microsoft_provider/microsoft_provider.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import 'intg_strategy_interface.dart';
 
-class IntgStrategyGoogle
-    extends IntgStrategyInterface<GoogleProvider, GoogleProviderModel> {
-  IntgStrategyGoogle(AccountService accountService, {Httpp? httpp})
+class IntgStrategyMicrosoft
+    extends IntgStrategyInterface<MicrosoftProvider, MicrosoftProviderModel> {
+  IntgStrategyMicrosoft(AccountService accountService, {Httpp? httpp})
       : super(accountService, httpp: httpp);
 
   @override
-  GoogleProvider construct(
+  MicrosoftProvider construct(
           {AccountModel? account,
           Function(AccountModel account)? onLink,
           Function(String? username)? onUnlink,
@@ -31,7 +31,7 @@ class IntgStrategyGoogle
                   String? refreshToken})?
               onRefresh}) =>
       account != null
-          ? GoogleProvider.loggedIn(
+          ? MicrosoftProvider.loggedIn(
               token: account.accessToken,
               refreshToken: account.refreshToken,
               email: account.email,
@@ -51,7 +51,7 @@ class IntgStrategyGoogle
                       refreshExp: refreshExp);
               },
               httpp: httpp)
-          : GoogleProvider(
+          : MicrosoftProvider(
               onLink: (account) => onLinkMap(onLink, account),
               onUnlink: onUnlink,
               httpp: httpp);
@@ -79,7 +79,7 @@ class IntgStrategyGoogle
           .accountWidget();
 
   @override
-  AccountModel to(GoogleProviderModel model) => AccountModel(
+  AccountModel to(MicrosoftProviderModel model) => AccountModel(
         username: model.email,
         email: model.email,
         displayName: model.displayName,

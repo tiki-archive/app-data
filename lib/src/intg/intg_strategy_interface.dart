@@ -7,17 +7,19 @@ import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
+import '../account/account_service.dart';
 
 abstract class IntgStrategyInterface<S, M> {
   final Httpp? httpp;
+  final AccountService _accountService;
 
-  IntgStrategyInterface(this.httpp);
+  IntgStrategyInterface(this._accountService, {this.httpp});
 
   S construct(
       {AccountModel? account,
       Function(AccountModel account)? onLink,
       Function(String? username)? onUnlink,
-      Function(
+      Function(AccountModel account,
               {String? accessToken,
               DateTime? accessExp,
               String? refreshToken,
@@ -37,9 +39,15 @@ abstract class IntgStrategyInterface<S, M> {
     if (onLink != null) onLink(to(account));
   }
 
-  void onRefresh(
+  Future<void> onRefresh(AccountModel account,
       {String? accessToken,
       DateTime? accessExp,
       String? refreshToken,
-      DateTime? refreshExp}) {}
+      DateTime? refreshExp}) async {
+    if (accessToken != null) account.accessToken = accessToken;
+    if (accessExp != null) account.accessTokenExpiration = accessExp;
+    if (refreshToken != null) account.refreshToken = refreshToken;
+    if (refreshExp != null) account.refreshTokenExpiration = refreshExp;
+    await _accountService.save(account);
+  }
 }

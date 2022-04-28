@@ -11,6 +11,7 @@ import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../decision/decision_strategy.dart';
+import '../intg/intg_context.dart';
 import 'screen_controller.dart';
 import 'screen_model.dart';
 import 'screen_presenter.dart';
@@ -19,14 +20,15 @@ class ScreenService extends ChangeNotifier {
   final ScreenModel model = ScreenModel();
   late final ScreenController controller;
   late final ScreenPresenter presenter;
-  final Httpp? httpp;
+  final Httpp? _httpp;
 
   final AccountService _accountService;
   final Decision _decision;
   final Future<void> Function({AccountModel account}) _fetchInbox;
 
   ScreenService(this._accountService, this._decision, this._fetchInbox,
-      {this.httpp}) {
+      {Httpp? httpp})
+      : _httpp = httpp {
     controller = ScreenController(this);
     presenter = ScreenPresenter(this);
     _accountService.getAll().then((accounts) {
@@ -51,4 +53,6 @@ class ScreenService extends ChangeNotifier {
     DecisionStrategy(_decision).setLinked(false);
     notifyListeners();
   }
+
+  IntgContext get intgContext => IntgContext(_accountService, httpp: _httpp);
 }

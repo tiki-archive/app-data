@@ -8,6 +8,7 @@ import 'package:httpp/httpp.dart';
 import 'package:spam_cards/spam_cards.dart';
 
 import '../account/account_model.dart';
+import '../account/account_service.dart';
 import '../email/email_service.dart';
 import '../email/sender/email_sender_model.dart';
 import '../intg/intg_context_email.dart';
@@ -16,9 +17,11 @@ import 'decision_strategy.dart';
 class DecisionStrategySpam extends DecisionStrategy {
   final SpamCards _spamCards;
   final EmailService _emailService;
+  final AccountService _accountService;
   final Httpp? _httpp;
 
   DecisionStrategySpam(Decision decision, this._spamCards, this._emailService,
+      this._accountService,
       {Httpp? httpp})
       : _httpp = httpp,
         super(decision);
@@ -49,7 +52,7 @@ ${account.displayName ?? ''}<br />
 <br />
 ''';
     bool success = false;
-    await IntgContextEmail(httpp: _httpp).send(
+    await IntgContextEmail(_accountService, httpp: _httpp).send(
         account: account,
         to: to,
         body: body,

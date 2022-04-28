@@ -8,12 +8,12 @@ import 'package:httpp/httpp.dart';
 import '../account/account_model.dart';
 import '../account/account_service.dart';
 import '../email/msg/email_msg_model.dart';
-import 'intg_strategy_google.dart';
 import 'intg_strategy_interface_email.dart';
+import 'intg_strategy_microsoft.dart';
 
-class IntgStrategyGoogleEmail extends IntgStrategyGoogle
+class IntgStrategyMicrosoftEmail extends IntgStrategyMicrosoft
     with IntgStrategyInterfaceEmail {
-  IntgStrategyGoogleEmail(AccountService accountService, {Httpp? httpp})
+  IntgStrategyMicrosoftEmail(AccountService accountService, {Httpp? httpp})
       : super(accountService, httpp: httpp);
 
   @override

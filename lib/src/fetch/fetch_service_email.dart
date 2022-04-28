@@ -11,6 +11,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
+import '../account/account_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
@@ -33,11 +34,12 @@ class FetchServiceEmail {
   final CompanyService _companyService;
   final SpamCards _spamCards;
   final Decision _decision;
+  final AccountService _accountService;
 
   final Set<int> _processMutex = {};
 
-  FetchServiceEmail(
-      this._emailService, this._companyService, this._spamCards, this._decision,
+  FetchServiceEmail(this._emailService, this._companyService, this._spamCards,
+      this._decision, this._accountService,
       {Httpp? httpp})
       : _httpp = httpp ?? Httpp();
 
@@ -56,7 +58,8 @@ class FetchServiceEmail {
         ' started on: ' +
         DateTime.now().toIso8601String());
 
-    if (!await IntgContext(httpp: _httpp).isConnected(account)) {
+    if (!await IntgContext(_accountService, httpp: _httpp)
+        .isConnected(account)) {
       throw 'ApiOauthAccount ${account.provider} not connected.';
     }
 
@@ -67,7 +70,7 @@ class FetchServiceEmail {
     if (since == null ||
         DateTime.now().subtract(const Duration(days: 1)).isAfter(since)) {
       DateTime fetchStart = DateTime.now();
-      await IntgContextEmail(httpp: _httpp).getInbox(
+      await IntgContextEmail(_accountService, httpp: _httpp).getInbox(
           account: account,
           since: since,
           onResult: (messages) async {
@@ -103,7 +106,8 @@ class FetchServiceEmail {
           ' started on: ' +
           DateTime.now().toIso8601String());
       _asyncProcess(account, onFinish: (list) {
-        DecisionStrategySpam(_decision, _spamCards, _emailService,
+        DecisionStrategySpam(
+                _decision, _spamCards, _emailService, _accountService,
                 httpp: _httpp)
             .addSpamCards(account, list);
         if (onFinish != null) onFinish(list);
@@ -113,7 +117,8 @@ class FetchServiceEmail {
 
   Future<void> _asyncProcess(AccountModel account,
       {Function(List)? onFinish}) async {
-    if (!await IntgContext(httpp: _httpp).isConnected(account)) {
+    if (!await IntgContext(_accountService, httpp: _httpp)
+        .isConnected(account)) {
       throw 'ApiOauthAccount ${account.provider} not connected.';
     }
 
@@ -131,7 +136,7 @@ class FetchServiceEmail {
           .toList();
       List<EmailMsgModel> fetched = List.empty(growable: true);
       List<EmailMsgModel> save = List.empty(growable: true);
-      await IntgContextEmail(httpp: _httpp).getMessages(
+      await IntgContextEmail(_accountService, httpp: _httpp).getMessages(
           account: account,
           messageIds: ids,
           onResult: (message) {

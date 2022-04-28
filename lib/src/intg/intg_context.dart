@@ -8,13 +8,16 @@ import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
+import '../account/account_service.dart';
 import 'intg_strategy_google.dart';
 import 'intg_strategy_interface.dart';
+import 'intg_strategy_microsoft.dart';
 
 class IntgContext {
   final Httpp? httpp;
+  final AccountService accountService;
 
-  IntgContext({this.httpp});
+  IntgContext(this.accountService, {this.httpp});
 
   Future<bool> isConnected(AccountModel account,
           {Function(
@@ -36,7 +39,9 @@ class IntgContext {
   IntgStrategyInterface? _strategy(AccountModelProvider? provider) {
     switch (provider) {
       case AccountModelProvider.google:
-        return IntgStrategyGoogle(httpp);
+        return IntgStrategyGoogle(accountService, httpp: httpp);
+      case AccountModelProvider.microsoft:
+        return IntgStrategyMicrosoft(accountService, httpp: httpp);
       default:
         return null;
     }

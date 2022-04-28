@@ -9,7 +9,6 @@ import 'package:tiki_style/tiki_style.dart';
 
 import '../../account/account_model.dart';
 import '../../account/account_model_provider.dart';
-import '../../intg/intg_context.dart';
 import '../screen_service.dart';
 
 class ScreenViewLayoutAccounts extends StatelessWidget {
@@ -24,7 +23,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
           ? Container()
           : Container(
               margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
-              child: IntgContext(httpp: service.httpp).widget(
+              child: service.intgContext.widget(
                   account: account,
                   provider: AccountModelProvider.google,
                   onLink: (account) => service.controller.saveAccount(account),
@@ -35,7 +34,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
           ? Container()
           : Container(
               margin: EdgeInsets.only(top: SizeProvider.instance.height(15)),
-              child: IntgContext(httpp: service.httpp).widget(
+              child: service.intgContext.widget(
                   account: account,
                   provider: AccountModelProvider.microsoft,
                   onLink: (account) => service.controller.saveAccount(account),

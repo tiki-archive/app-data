@@ -10,6 +10,7 @@ import 'package:spam_cards/spam_cards.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../account/account_model.dart';
+import '../account/account_service.dart';
 import '../company/company_service.dart';
 import '../email/email_service.dart';
 import 'fetch_service_email.dart';
@@ -25,9 +26,10 @@ class FetchService {
       Database database,
       Decision decision,
       SpamCards spamCards,
+      AccountService accountService,
       {Httpp? httpp}) async {
     email = await FetchServiceEmail(
-            emailService, companyService, spamCards, decision,
+            emailService, companyService, spamCards, decision, accountService,
             httpp: httpp)
         .init(database);
     return this;

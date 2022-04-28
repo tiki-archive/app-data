@@ -7,13 +7,16 @@ import 'package:httpp/httpp.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
+import '../account/account_service.dart';
 import '../email/msg/email_msg_model.dart';
 import 'intg_context.dart';
 import 'intg_strategy_google_email.dart';
 import 'intg_strategy_interface_email.dart';
+import 'intg_strategy_microsoft_email.dart';
 
 class IntgContextEmail extends IntgContext {
-  IntgContextEmail({Httpp? httpp}) : super(httpp: httpp);
+  IntgContextEmail(AccountService accountService, {Httpp? httpp})
+      : super(accountService, httpp: httpp);
 
   Future<void> getInbox(
           {required AccountModel account,
@@ -53,7 +56,9 @@ class IntgContextEmail extends IntgContext {
   IntgStrategyInterfaceEmail? _strategy(AccountModelProvider? provider) {
     switch (provider) {
       case AccountModelProvider.google:
-        return IntgStrategyGoogleEmail(httpp);
+        return IntgStrategyGoogleEmail(accountService, httpp: httpp);
+      case AccountModelProvider.microsoft:
+        return IntgStrategyMicrosoftEmail(accountService, httpp: httpp);
       default:
         return null;
     }
