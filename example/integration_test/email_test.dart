@@ -10,6 +10,7 @@ import 'package:tiki_data/src/company/company_model.dart';
 import 'package:tiki_data/src/company/company_repository.dart';
 import 'package:tiki_data/src/email/email_service.dart';
 import 'package:tiki_data/src/email/msg/email_msg_model.dart';
+import 'package:tiki_data/src/email/msg/email_msg_repository.dart';
 import 'package:tiki_data/src/email/sender/email_sender_model.dart';
 import 'package:uuid/uuid.dart';
 
@@ -207,6 +208,7 @@ void main() {
 
     test('UpsertMessages - Insert - Success', () async {
       Database database = await openDatabase('${Uuid().v4()}.db');
+      await CompanyRepository(database).createTable();
       EmailService emailService = await EmailService().open(database);
 
       String email = Uuid().v4() + '@test.com';
@@ -223,22 +225,36 @@ void main() {
           modified: DateTime.now());
       await emailService.upsertSenders([sender]);
 
+      String extMsgId = Uuid().v4();
+      String toEmail = 'test@test.com';
       await emailService.upsertMessages([
         EmailMsgModel(
             sender: sender,
-            extMessageId: Uuid().v4(),
+            extMessageId: extMsgId,
             receivedDate: DateTime.now(),
             openedDate: DateTime.now(),
-            toEmail: 'test@test.com',
+            toEmail: toEmail,
             created: DateTime.now(),
             modified: DateTime.now())
       ]);
 
-      //TODO ADD READ METHODS
+      EmailMsgRepository msgRepository = EmailMsgRepository(database);
+      EmailMsgModel? inserted =
+          await msgRepository.getByExtMessageIdAndToDate(extMsgId, toEmail);
+
+      expect(inserted != null, true);
+      expect(inserted?.sender?.email != null, true);
+      expect(inserted?.extMessageId, extMsgId);
+      expect(inserted?.toEmail, toEmail);
+      expect(inserted?.receivedDate != null, true);
+      expect(inserted?.openedDate != null, true);
+      expect(inserted?.created != null, true);
+      expect(inserted?.modified != null, true);
     });
 
     test('UpsertMessages - Update - Success', () async {
       Database database = await openDatabase('${Uuid().v4()}.db');
+      await CompanyRepository(database).createTable();
       EmailService emailService = await EmailService().open(database);
 
       String email = Uuid().v4() + '@test.com';
@@ -255,28 +271,42 @@ void main() {
           modified: DateTime.now());
       await emailService.upsertSenders([sender]);
 
+      String extMsgId = Uuid().v4();
+      String toEmail = 'test@test.com';
       await emailService.upsertMessages([
         EmailMsgModel(
             sender: sender,
-            extMessageId: Uuid().v4(),
+            extMessageId: extMsgId,
             receivedDate: DateTime.now(),
-            toEmail: 'test@test.com',
+            toEmail: toEmail,
             created: DateTime.now(),
             modified: DateTime.now())
       ]);
 
       await emailService.upsertMessages([
         EmailMsgModel(
-            extMessageId: Uuid().v4(),
-            toEmail: 'test@test.com',
+            extMessageId: extMsgId,
+            toEmail: toEmail,
             openedDate: DateTime.now())
       ]);
 
-      //TODO ADD READ METHODS
+      EmailMsgRepository msgRepository = EmailMsgRepository(database);
+      EmailMsgModel? updated =
+          await msgRepository.getByExtMessageIdAndToDate(extMsgId, toEmail);
+
+      expect(updated != null, true);
+      expect(updated?.sender?.email != null, true);
+      expect(updated?.extMessageId, extMsgId);
+      expect(updated?.toEmail, toEmail);
+      expect(updated?.receivedDate != null, true);
+      expect(updated?.openedDate != null, true);
+      expect(updated?.created != null, true);
+      expect(updated?.modified != null, true);
     });
 
     test('UpsertMessages - Multiple - Success', () async {
       Database database = await openDatabase('${Uuid().v4()}.db');
+      await CompanyRepository(database).createTable();
       EmailService emailService = await EmailService().open(database);
 
       String email = Uuid().v4() + '@test.com';
@@ -293,26 +323,50 @@ void main() {
           modified: DateTime.now());
       await emailService.upsertSenders([sender]);
 
+      String extMsgId1 = Uuid().v4();
+      String extMsgId2 = Uuid().v4();
+      String toEmail = 'test@test.com';
       await emailService.upsertMessages([
         EmailMsgModel(
             sender: sender,
-            extMessageId: Uuid().v4(),
+            extMessageId: extMsgId1,
             receivedDate: DateTime.now(),
             openedDate: DateTime.now(),
-            toEmail: 'test@test.com',
+            toEmail: toEmail,
             created: DateTime.now(),
             modified: DateTime.now()),
         EmailMsgModel(
             sender: sender,
-            extMessageId: Uuid().v4(),
+            extMessageId: extMsgId2,
             receivedDate: DateTime.now(),
             openedDate: DateTime.now(),
-            toEmail: 'test2@test.com',
+            toEmail: toEmail,
             created: DateTime.now(),
             modified: DateTime.now())
       ]);
 
-      //TODO ADD READ METHODS
+      EmailMsgRepository msgRepository = EmailMsgRepository(database);
+      EmailMsgModel? updated1 =
+          await msgRepository.getByExtMessageIdAndToDate(extMsgId1, toEmail);
+      EmailMsgModel? updated2 =
+          await msgRepository.getByExtMessageIdAndToDate(extMsgId2, toEmail);
+
+      expect(updated1 != null, true);
+      expect(updated1?.sender?.email != null, true);
+      expect(updated1?.extMessageId, extMsgId1);
+      expect(updated1?.toEmail, toEmail);
+      expect(updated1?.receivedDate != null, true);
+      expect(updated1?.openedDate != null, true);
+      expect(updated1?.created != null, true);
+      expect(updated1?.modified != null, true);
+      expect(updated2 != null, true);
+      expect(updated2?.sender?.email != null, true);
+      expect(updated2?.extMessageId, extMsgId2);
+      expect(updated2?.toEmail, toEmail);
+      expect(updated2?.receivedDate != null, true);
+      expect(updated2?.openedDate != null, true);
+      expect(updated2?.created != null, true);
+      expect(updated2?.modified != null, true);
     });
   });
 }

@@ -44,7 +44,7 @@ class EmailMsgRepository {
           'received_date_epoch=IFNULL(?3, received_date_epoch), '
           'opened_date_epoch=IFNULL(?4, opened_date_epoch), '
           'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
-          'WHERE ext_message_id = ?2 AND to_email = ?5;',
+          'WHERE ext_message_id = ?1 AND to_email = ?5;',
           [
             data.extMessageId,
             data.sender?.email,
@@ -59,5 +59,71 @@ class EmailMsgRepository {
     } else {
       return 0;
     }
+  }
+
+  Future<EmailMsgModel?> getByExtMessageIdAndToDate(
+      String extMessageId, String toEmail,
+      {Transaction? txn}) async {
+    final List<Map<String, Object?>> rows = await _select(
+        where: "ext_message_id = ?1 AND to_email = ?2",
+        whereArgs: [extMessageId, toEmail],
+        txn: txn);
+    if (rows.isEmpty) return null;
+    return EmailMsgModel.fromMap(rows[0]);
+  }
+
+  Future<List<Map<String, Object?>>> _select(
+      {String? where, List<Object?>? whereArgs, Transaction? txn}) async {
+    List<Map<String, Object?>> rows = await (txn ?? _database).rawQuery(
+        'SELECT message.message_id AS \'message@message_id\', '
+                'message.ext_message_id AS \'message@ext_message_id\', '
+                'message.received_date_epoch AS \'message@received_date_epoch\', '
+                'message.opened_date_epoch AS \'message@opened_date_epoch\', '
+                'message.to_email AS \'message@to_email\', '
+                'message.created_epoch AS \'message@created_epoch\', '
+                'message.modified_epoch AS \'message@modified_epoch\', '
+                'sender.sender_id AS \'sender@sender_id\', '
+                'sender.name AS \'sender@name\', '
+                'sender.email AS \'sender@email\', '
+                'sender.category AS \'sender@category\', '
+                'sender.unsubscribe_mail_to AS \'sender@unsubscribe_mail_to\', '
+                'sender.email_since_epoch AS \'sender@email_since_epoch\', '
+                'sender.ignore_until_epoch AS \'sender@ignore_until_epoch\', '
+                'sender.unsubscribed_bool AS \'sender@unsubscribed_bool\', '
+                'sender.created_epoch AS \'sender@created_epoch\', '
+                'sender.modified_epoch AS \'sender@modified_epoch\', '
+                'company.company_id AS \'company@company_id\', '
+                'company.logo AS \'company@logo\', '
+                'company.security_score AS \'company@security_score\', '
+                'company.breach_score AS \'company@breach_score\', '
+                'company.sensitivity_score AS \'company@sensitivity_score\', '
+                'sender.company_domain AS \'company@domain\', '
+                'company.created_epoch AS \'company@created_epoch\', '
+                'company.modified_epoch AS \'company@modified_epoch\' '
+                'FROM message AS message '
+                'LEFT JOIN sender AS sender '
+                'ON message.sender_email = sender.email '
+                'LEFT JOIN company AS company '
+                'ON sender.company_domain = company.domain ' +
+            (where != null ? 'WHERE ' + where : ''),
+        whereArgs);
+    if (rows.isEmpty) return List.empty();
+    return rows.map((row) {
+      Map<String, Object?> messageMap = {};
+      Map<String, Object?> senderMap = {};
+      Map<String, Object?> companyMap = {};
+      for (var element in row.entries) {
+        if (element.key.contains('message@')) {
+          messageMap[element.key.replaceFirst('message@', '')] = element.value;
+        } else if (element.key.contains('sender@')) {
+          senderMap[element.key.replaceFirst('sender@', '')] = element.value;
+        } else if (element.key.contains('company@')) {
+          companyMap[element.key.replaceFirst('company@', '')] = element.value;
+        }
+      }
+      senderMap['company'] = companyMap;
+      messageMap['sender'] = senderMap;
+      return messageMap;
+    }).toList();
   }
 }

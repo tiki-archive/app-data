@@ -18,7 +18,7 @@ dependencies:
   sqflite_sqlcipher: ^2.1.0
   httpp: ^0.0.3
   google_provider: ^0.0.9
-  microsoft_provider: ^0.0.8
+  microsoft_provider: ^0.0.9
   spam_cards:
     path: ../spam_cards
   decision: ^0.0.4
