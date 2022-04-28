@@ -22,9 +22,9 @@ class EmailSenderRepository {
   Future<void> createTable() =>
       _database.execute('CREATE TABLE IF NOT EXISTS $_table('
           'sender_id INTEGER PRIMARY KEY AUTOINCREMENT, '
-          'company_domain TEXT NOT NULL, '
+          'company_domain TEXT, '
           'name TEXT, '
-          'email TEXT, '
+          'email TEXT UNIQUE, '
           'category TEXT, '
           'unsubscribe_mail_to TEXT, '
           'ignore_until_epoch INTEGER, '
@@ -43,12 +43,27 @@ class EmailSenderRepository {
 
   Future<EmailSenderModel> update(EmailSenderModel sender,
       {Transaction? txn}) async {
-    sender.modified = DateTime.now();
-    await (txn ?? _database).update(
-      _table,
-      sender.toMap(),
-      where: 'sender_id = ?',
-      whereArgs: [sender.senderId],
+    await (txn ?? _database).rawUpdate(
+      'UPDATE $_table SET '
+      'name=IFNULL(?1, name), '
+      'category=IFNULL(?3, category), '
+      'unsubscribe_mail_to=IFNULL(?4, unsubscribe_mail_to), '
+      'ignore_until_epoch=IFNULL(?5, ignore_until_epoch), '
+      'email_since_epoch=IFNULL(?6, email_since_epoch), '
+      'unsubscribed_bool=IFNULL(?7, unsubscribed_bool), '
+      'company_domain=IFNULL(?8, company_domain), '
+      'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
+      'WHERE email = ?2;',
+      [
+        sender.name,
+        sender.email,
+        sender.category,
+        sender.unsubscribeMailTo,
+        sender.ignoreUntil?.millisecondsSinceEpoch,
+        sender.emailSince?.millisecondsSinceEpoch,
+        sender.unsubscribed,
+        sender.company?.domain
+      ],
     );
     return sender;
   }
@@ -56,30 +71,29 @@ class EmailSenderRepository {
   Future<int> upsert(List<EmailSenderModel> senders) async {
     if (senders.isNotEmpty) {
       Batch batch = _database.batch();
-      for (var data in senders) {
+      for (EmailSenderModel sender in senders) {
         batch.rawInsert(
-          'INSERT OR REPLACE INTO $_table '
-          '(sender_id, name, email, category, unsubscribe_mail_to, ignore_until_epoch, email_since_epoch, unsubscribed_bool, company_domain, created_epoch, modified_epoch) '
-          'VALUES('
-          '(SELECT sender_id '
-          'FROM $_table '
-          'WHERE email = ?2), '
-          '?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8,'
-          '(SELECT IFNULL('
-          '(SELECT created_epoch '
-          'FROM $_table '
-          'WHERE email = ?2), '
-          'strftime(\'%s\', \'now\') * 1000)), '
-          'strftime(\'%s\', \'now\') * 1000)',
+          'INSERT INTO $_table(name, email, category, unsubscribe_mail_to, ignore_until_epoch, email_since_epoch, unsubscribed_bool, company_domain, created_epoch, modified_epoch)'
+          'VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, strftime(\'%s\', \'now\') * 1000, strftime(\'%s\', \'now\') * 1000) '
+          'ON CONFLICT(email) DO UPDATE SET '
+          'name=IFNULL(?1, name), '
+          'category=IFNULL(?3, category), '
+          'unsubscribe_mail_to=IFNULL(?4, unsubscribe_mail_to), '
+          'ignore_until_epoch=IFNULL(?5, ignore_until_epoch), '
+          'email_since_epoch=IFNULL(?6, email_since_epoch), '
+          'unsubscribed_bool=IFNULL(?7, unsubscribed_bool), '
+          'company_domain=IFNULL(?8, company_domain), '
+          'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
+          'WHERE email = ?2;',
           [
-            data.name,
-            data.email,
-            data.category,
-            data.unsubscribeMailTo,
-            data.ignoreUntil?.millisecondsSinceEpoch,
-            data.emailSince?.millisecondsSinceEpoch,
-            data.unsubscribed,
-            data.company?.domain
+            sender.name,
+            sender.email,
+            sender.category,
+            sender.unsubscribeMailTo,
+            sender.ignoreUntil?.millisecondsSinceEpoch,
+            sender.emailSince?.millisecondsSinceEpoch,
+            sender.unsubscribed,
+            sender.company?.domain
           ],
         );
       }

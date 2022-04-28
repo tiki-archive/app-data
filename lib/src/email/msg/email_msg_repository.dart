@@ -23,7 +23,7 @@ class EmailMsgRepository {
       _database.execute('CREATE TABLE IF NOT EXISTS $_table('
           'message_id INTEGER PRIMARY KEY AUTOINCREMENT, '
           'ext_message_id TEXT NOT NULL, '
-          'sender_email TEXT NOT NULL, '
+          'sender_email TEXT, '
           'received_date_epoch INTEGER, '
           'opened_date_epoch INTEGER, '
           'to_email TEXT NOT NULL, '
@@ -36,19 +36,15 @@ class EmailMsgRepository {
       Batch batch = _database.batch();
       for (var data in messages) {
         batch.rawInsert(
-          'INSERT OR REPLACE INTO $_table '
-          '(message_id, ext_message_id, sender_email, received_date_epoch, opened_date_epoch, to_email, created_epoch, modified_epoch) '
-          'VALUES('
-          '(SELECT message_id '
-          'FROM $_table '
-          'WHERE ext_message_id = ?1 AND to_email = ?5), '
-          '?1, ?2, ?3, ?4, ?5, '
-          '(SELECT IFNULL('
-          '(SELECT created_epoch '
-          'FROM $_table '
-          'WHERE ext_message_id = ?1 AND to_email = ?5), '
-          'strftime(\'%s\', \'now\') * 1000)), '
-          'strftime(\'%s\', \'now\') * 1000)',
+          'INSERT INTO $_table'
+          '(ext_message_id, sender_email, received_date_epoch, opened_date_epoch, to_email, created_epoch, modified_epoch) '
+          'VALUES(?1, ?2, ?3, ?4, ?5, strftime(\'%s\', \'now\') * 1000, strftime(\'%s\', \'now\') * 1000) '
+          'ON CONFLICT(ext_message_id, to_email) DO UPDATE SET '
+          'sender_email=IFNULL(?2, sender_email), '
+          'received_date_epoch=IFNULL(?3, received_date_epoch), '
+          'opened_date_epoch=IFNULL(?4, opened_date_epoch), '
+          'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
+          'WHERE ext_message_id = ?2 AND to_email = ?5;',
           [
             data.extMessageId,
             data.sender?.email,

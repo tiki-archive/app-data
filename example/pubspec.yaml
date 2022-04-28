@@ -11,14 +11,12 @@ dependencies:
   logging: ^1.0.1
   uuid: ^3.0.5
   sqflite_sqlcipher: ^2.1.0
-  tiki_style:
-    path: ../../style
+  tiki_style: ^0.0.9
   tiki_data:
     path: ../
   spam_cards:
     path: ../../spam_cards
-  decision:
-    path: ../../decision
+  decision: ^0.0.4
 
 dev_dependencies:
   flutter_test:
