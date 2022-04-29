@@ -45,6 +45,7 @@ class ScreenService extends ChangeNotifier {
     await _accountService.save(account);
     DecisionStrategy(_decision).setLinked(true);
     _fetchInbox(account: account);
+    notifyListeners();
   }
 
   Future<void> removeAccount(AccountModelProvider type, String username) async {

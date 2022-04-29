@@ -83,7 +83,7 @@ class IntgStrategyMicrosoft
         username: model.email,
         email: model.email,
         displayName: model.displayName,
-        provider: AccountModelProvider.google,
+        provider: AccountModelProvider.microsoft,
         accessToken: model.token,
         accessTokenExpiration: model.accessTokenExp,
         refreshToken: model.refreshToken,

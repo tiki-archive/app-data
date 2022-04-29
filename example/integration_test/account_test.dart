@@ -14,7 +14,7 @@ import 'package:uuid/uuid.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Integration Tests', () {
+  group('Account Tests', () {
     test('Open - Success', () async {
       Database database = await openDatabase('${Uuid().v4()}.db');
       AccountService accountService = await AccountService().open(database);

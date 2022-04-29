@@ -73,7 +73,8 @@ class EmailSenderRepository {
       Batch batch = _database.batch();
       for (EmailSenderModel sender in senders) {
         batch.rawInsert(
-          'INSERT INTO $_table(name, email, category, unsubscribe_mail_to, ignore_until_epoch, email_since_epoch, unsubscribed_bool, company_domain, created_epoch, modified_epoch)'
+          'INSERT INTO $_table'
+          '(name, email, category, unsubscribe_mail_to, ignore_until_epoch, email_since_epoch, unsubscribed_bool, company_domain, created_epoch, modified_epoch) '
           'VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, strftime(\'%s\', \'now\') * 1000, strftime(\'%s\', \'now\') * 1000) '
           'ON CONFLICT(email) DO UPDATE SET '
           'name=IFNULL(?1, name), '

@@ -17,7 +17,7 @@ import 'package:uuid/uuid.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Integration Tests', () {
+  group('Email Tests', () {
     test('Open - Success', () async {
       Database database = await openDatabase('${Uuid().v4()}.db');
       await EmailService().open(database);

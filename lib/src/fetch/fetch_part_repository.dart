@@ -17,19 +17,16 @@ class FetchPartRepository {
 
   FetchPartRepository(this._database);
 
-  Future<T> transaction<T>(Future<T> Function(Transaction txn) action) =>
-      _database.transaction(action);
-
-  Future<void> createTable() => _database.execute(
-      'CREATE TABLE IF NOT EXISTS $_table('
-      'part_id INTEGER PRIMARY KEY AUTOINCREMENT, '
-      'ext_id TEXT NOT NULL, '
-      'account_id INTEGER NOT NULL, '
-      'api_enum TEXT NOT NULL, '
-      'obj_json TEXT, '
-      'created_epoch INTEGER NOT NULL, '
-      'modified_epoch INTEGER NOT NULL);'
-      'CREATE UNIQUE INDEX data_fetch_part_idx ON $_table(ext_id, account_id);');
+  Future<void> createTable() =>
+      _database.execute('CREATE TABLE IF NOT EXISTS $_table('
+          'part_id INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'ext_id TEXT NOT NULL, '
+          'account_id INTEGER NOT NULL, '
+          'api_enum TEXT NOT NULL, '
+          'obj_json TEXT, '
+          'created_epoch INTEGER NOT NULL, '
+          'modified_epoch INTEGER NOT NULL, '
+          'UNIQUE (ext_id, account_id));');
 
   Future<int> upsert<T>(List<FetchPartModel<T>> parts,
       Map<String, dynamic>? Function(T?) toMap) async {
@@ -37,19 +34,14 @@ class FetchPartRepository {
       Batch batch = _database.batch();
       for (var part in parts) {
         batch.rawInsert(
-          'INSERT OR REPLACE INTO $_table '
-          '(part_id, ext_id, account_id, api_enum, obj_json, created_epoch, modified_epoch) '
-          'VALUES('
-          '(SELECT part_id '
-          'FROM $_table '
-          'WHERE ext_id = ?1 AND account_id = ?2), '
-          '?1, ?2, ?3, ?4, '
-          '(SELECT IFNULL('
-          '(SELECT created_epoch '
-          'FROM $_table '
-          'WHERE ext_id = ?1 AND account_id = ?2), '
-          'strftime(\'%s\', \'now\') * 1000)), '
-          'strftime(\'%s\', \'now\') * 1000)',
+          'INSERT INTO $_table'
+          '(ext_id, account_id, api_enum, obj_json, created_epoch, modified_epoch) '
+          'VALUES(?1, ?2, ?3, ?4, strftime(\'%s\', \'now\') * 1000, strftime(\'%s\', \'now\') * 1000) '
+          'ON CONFLICT(ext_id, account_id) DO UPDATE SET '
+          'api_enum=IFNULL(?3, api_enum), '
+          'obj_json=IFNULL(?4, obj_json), '
+          'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
+          'WHERE ext_id = ?1 AND account_id = ?2;',
           [
             part.extId,
             part.account!.accountId,
@@ -69,7 +61,7 @@ class FetchPartRepository {
       FetchApiEnum api, T Function(Map<String, dynamic>? map) fromMap,
       {int? max}) async {
     final List<Map<String, Object?>> rows = await _select(
-        where: 'part.api_enum = ? AND account.account_id = ? ',
+        where: 'part.api_enum = ?1 AND part.account_id = ?2 ',
         whereArgs: [api.value, accountId],
         limit: max);
     if (rows.isEmpty) return List.empty();
@@ -113,7 +105,7 @@ class FetchPartRepository {
                 'account.created_epoch AS \'account@created_epoch\', '
                 'account.modified_epoch AS \'account@modified_epoch\' '
                 'FROM $_table AS part '
-                'INNER JOIN auth_service_account AS account '
+                'LEFT JOIN auth_service_account AS account '
                 'ON part.account_id = account.account_id ' +
             (where != null ? 'WHERE ' + where : '') +
             (limit != null ? 'LIMIT ' + limit.toString() : ''),
