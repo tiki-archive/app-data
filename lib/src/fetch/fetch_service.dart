@@ -3,11 +3,11 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:decision/decision.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
-import 'package:spam_cards/spam_cards.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:tiki_decision/tiki_decision.dart';
+import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
@@ -17,15 +17,15 @@ import 'fetch_service_email.dart';
 
 class FetchService {
   final _log = Logger('FetchService');
-  final Set<int> _indexMutex = {};
+  final Set<int> _accountMutex = {};
   late final FetchServiceEmail email;
 
   Future<FetchService> init(
       EmailService emailService,
       CompanyService companyService,
       Database database,
-      Decision decision,
-      SpamCards spamCards,
+      TikiDecision decision,
+      TikiSpamCards spamCards,
       AccountService accountService,
       {Httpp? httpp}) async {
     email = await FetchServiceEmail(
@@ -35,16 +35,18 @@ class FetchService {
     return this;
   }
 
-  Future<void> asyncIndex(AccountModel account,
-      {Function(List)? onFinishProccess}) async {
-    if (!_indexMutex.contains(account.accountId!)) {
-      _indexMutex.add(account.accountId!);
+  Future<void> all(AccountModel account) async {
+    if (!_accountMutex.contains(account.accountId!)) {
+      _accountMutex.add(account.accountId!);
       _log.fine(
-          'DataFetchService async index for account ${account.accountId}');
-      Future f1 = email.asyncIndex(account, onFinish: onFinishProccess);
-      Future f2 = email.asyncProcess(account, onFinish: onFinishProccess);
-      await Future.wait([f1, f2]);
-      _indexMutex.remove(account.accountId!);
+          'index for ${account.provider?.value} account ${account.email}');
+      await Future.wait(List.from(_index(account))..addAll(_process(account)));
+      _accountMutex.remove(account.accountId!);
     }
   }
+
+  List<Future<dynamic>> _index(AccountModel account) => [email.index(account)];
+
+  List<Future<dynamic>> _process(AccountModel account) =>
+      [email.process(account)];
 }

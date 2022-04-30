@@ -3,9 +3,9 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:decision/decision.dart';
 import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
+import 'package:tiki_decision/tiki_decision.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
@@ -23,7 +23,7 @@ class ScreenService extends ChangeNotifier {
   final Httpp? _httpp;
 
   final AccountService _accountService;
-  final Decision _decision;
+  final TikiDecision _decision;
   final Future<void> Function({AccountModel account}) _fetchInbox;
 
   ScreenService(this._accountService, this._decision, this._fetchInbox,

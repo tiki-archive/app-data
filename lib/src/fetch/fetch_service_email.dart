@@ -3,11 +3,13 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:decision/decision.dart';
+import 'dart:async';
+
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
-import 'package:spam_cards/spam_cards.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:tiki_decision/tiki_decision.dart';
+import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
@@ -32,8 +34,8 @@ class FetchServiceEmail {
   final Httpp _httpp;
   final EmailService _emailService;
   final CompanyService _companyService;
-  final SpamCards _spamCards;
-  final Decision _decision;
+  final TikiSpamCards _spamCards;
+  final TikiDecision _decision;
   final AccountService _accountService;
 
   final Set<int> _processMutex = {};
@@ -51,18 +53,15 @@ class FetchServiceEmail {
     return this;
   }
 
-  Future<void> asyncIndex(AccountModel account,
-      {Function(List)? onFinish}) async {
-    _log.fine('Async index for ' +
-        (account.email ?? '') +
-        ' started on: ' +
-        DateTime.now().toIso8601String());
-
+  Future<void> index(AccountModel account) async {
     if (!await IntgContext(_accountService, httpp: _httpp)
         .isConnected(account)) {
-      throw 'ApiOauthAccount ${account.provider} not connected.';
+      throw '${account.email} - ${account.provider} not connected.';
     }
 
+    _log.fine(
+        'email index ${account.email} on ${DateTime.now().toIso8601String()}');
+    Completer<void> completer = Completer();
     FetchLastModel? last = await _lastRepository.getByAccountIdAndApi(
         account.accountId!, _apiFromProvider(account.provider)!);
     DateTime? since = last?.fetched;
@@ -74,7 +73,7 @@ class FetchServiceEmail {
           account: account,
           since: since,
           onResult: (messages) async {
-            _log.fine('fetched ${messages.length} messages');
+            _log.fine('indexed ${messages.length} messages');
             List<FetchPartModel<EmailMsgModel>> parts = messages
                 .map((message) => FetchPartModel(
                     extId: message.extMessageId,
@@ -84,39 +83,44 @@ class FetchServiceEmail {
                 .toList();
             await _partRepository.upsert<EmailMsgModel>(
                 parts, (msg) => msg?.toMap());
-            _log.fine('saved ${messages.length} messages');
-            asyncProcess(account, onFinish: onFinish);
+            _log.fine('saved ${messages.length} message indices');
+            process(account);
           },
           onFinish: () async {
             await _lastRepository.upsert(FetchLastModel(
                 account: account,
                 api: _apiFromProvider(account.provider),
                 fetched: fetchStart));
-            _log.fine('finished fetching.');
+            _log.fine('finished email index for ${account.email}.');
+            completer.complete();
           });
-    }
+    } else
+      completer.complete();
+
+    return completer.future;
   }
 
-  Future<void> asyncProcess(AccountModel account,
-      {Function(List)? onFinish}) async {
+  Future<void> process(AccountModel account) async {
+    Completer<void> completer = Completer();
     if (!_processMutex.contains(account.accountId!)) {
       _processMutex.add(account.accountId!);
-      _log.fine('Async process for ' +
-          (account.email ?? '') +
-          ' started on: ' +
-          DateTime.now().toIso8601String());
-      _asyncProcess(account, onFinish: (list) {
-        DecisionStrategySpam(
-                _decision, _spamCards, _emailService, _accountService,
-                httpp: _httpp)
-            .addSpamCards(account, list);
-        if (onFinish != null) onFinish(list);
-      });
-    }
+      _log.fine(
+          'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
+      _process(account,
+          onProcessed: (list) {
+            DecisionStrategySpam(
+                    _decision, _spamCards, _emailService, _accountService,
+                    httpp: _httpp)
+                .addSpamCards(account, list);
+          },
+          onFinish: () => completer.complete());
+    } else
+      completer.complete();
+    return completer.future;
   }
 
-  Future<void> _asyncProcess(AccountModel account,
-      {Function(List)? onFinish}) async {
+  Future<void> _process(AccountModel account,
+      {Function(List)? onProcessed, Function()? onFinish}) async {
     if (!await IntgContext(_accountService, httpp: _httpp)
         .isConnected(account)) {
       throw 'ApiOauthAccount ${account.provider} not connected.';
@@ -182,13 +186,14 @@ class FetchServiceEmail {
                 fetched.map((msg) => msg.extMessageId!).toList(),
                 account.accountId!);
             _log.fine('finished & deleted $count parts');
-            if (onFinish != null) {
-              onFinish(save);
+            if (onProcessed != null) {
+              onProcessed(save);
             }
-            _asyncProcess(account, onFinish: onFinish);
+            _process(account, onProcessed: onProcessed);
           });
     } else {
       _processMutex.remove(account.accountId!);
+      if (onFinish != null) onFinish();
     }
   }
 

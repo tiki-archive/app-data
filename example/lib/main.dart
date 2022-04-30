@@ -1,19 +1,19 @@
-import 'package:decision/decision.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:spam_cards/spam_cards.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:tiki_data/tiki_data.dart';
+import 'package:tiki_decision/tiki_decision.dart';
+import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 import 'package:tiki_style/tiki_style.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Database database = await openDatabase('tiki_data_test.db');
-  Decision decision = await Decision().init();
+  TikiDecision decision = await TikiDecision().init();
   TikiData tikiData = await TikiData().init(
       database: database,
-      spamCards: SpamCards(decision: decision),
+      spamCards: TikiSpamCards(decision: decision),
       decision: decision);
 
   Logger.root.level = Level.ALL;

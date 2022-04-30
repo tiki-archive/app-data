@@ -3,9 +3,9 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:decision/decision.dart';
 import 'package:httpp/httpp.dart';
-import 'package:spam_cards/spam_cards.dart';
+import 'package:tiki_decision/tiki_decision.dart';
+import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
@@ -15,13 +15,13 @@ import '../intg/intg_context_email.dart';
 import 'decision_strategy.dart';
 
 class DecisionStrategySpam extends DecisionStrategy {
-  final SpamCards _spamCards;
+  final TikiSpamCards _spamCards;
   final EmailService _emailService;
   final AccountService _accountService;
   final Httpp? _httpp;
 
-  DecisionStrategySpam(Decision decision, this._spamCards, this._emailService,
-      this._accountService,
+  DecisionStrategySpam(TikiDecision decision, this._spamCards,
+      this._emailService, this._accountService,
       {Httpp? httpp})
       : _httpp = httpp,
         super(decision);

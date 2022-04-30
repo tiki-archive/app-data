@@ -3,10 +3,10 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:decision/decision.dart';
+import 'package:tiki_decision/tiki_decision.dart';
 
 class DecisionStrategy {
-  final Decision _decision;
+  final TikiDecision _decision;
 
   DecisionStrategy(this._decision);
 

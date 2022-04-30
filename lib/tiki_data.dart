@@ -3,11 +3,11 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:decision/decision.dart';
 import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
-import 'package:spam_cards/spam_cards.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:tiki_decision/tiki_decision.dart';
+import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import 'src/account/account_model.dart';
 import 'src/account/account_service.dart';
@@ -27,8 +27,8 @@ class TikiData {
 
   Future<TikiData> init(
       {required Database database,
-      required SpamCards spamCards,
-      required Decision decision,
+      required TikiSpamCards spamCards,
+      required TikiDecision decision,
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
       Httpp? httpp}) async {
     _enrichService = EnrichService(httpp: httpp, refresh: refresh);
@@ -49,7 +49,7 @@ class TikiData {
       _screenService.presenter.render(headerBar: headerBar);
 
   Future<void> fetchInbox({AccountModel? account}) async {
-    AccountModel? act = account ?? _screenService.model.account;
-    if (act != null) return _fetchService.asyncIndex(act);
+    AccountModel? active = account ?? _screenService.model.account;
+    if (active != null) return _fetchService.all(active);
   }
 }

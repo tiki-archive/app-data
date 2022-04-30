@@ -6,8 +6,8 @@
 import 'dart:async';
 
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:google_provider/google_provider.dart';
 import 'package:httpp/httpp.dart';
+import 'package:tiki_strategy_google/tiki_strategy_google.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
@@ -15,12 +15,18 @@ import '../account/account_service.dart';
 import 'intg_strategy_interface.dart';
 
 class IntgStrategyGoogle
-    extends IntgStrategyInterface<GoogleProvider, GoogleProviderModel> {
+    extends IntgStrategyInterface<TikiStrategyGoogle, AuthModel> {
+  static const String _redirectUri = "com.mytiki.app:/oauth";
+  static const String _androidClientId =
+      "240428403253-8bof2prkdatnsm8d2msgq2r81r12p5np.apps.googleusercontent.com";
+  static const String _iosClientId =
+      "240428403253-v4qk9lt2l07cc8am12gggocpbbsjdvl7.apps.googleusercontent.com";
+
   IntgStrategyGoogle(AccountService accountService, {Httpp? httpp})
       : super(accountService, httpp: httpp);
 
   @override
-  GoogleProvider construct(
+  TikiStrategyGoogle construct(
           {AccountModel? account,
           Function(AccountModel account)? onLink,
           Function(String? username)? onUnlink,
@@ -31,7 +37,10 @@ class IntgStrategyGoogle
                   String? refreshToken})?
               onRefresh}) =>
       account != null
-          ? GoogleProvider.loggedIn(
+          ? TikiStrategyGoogle.loggedIn(
+              redirectUri: _redirectUri,
+              androidClientId: _androidClientId,
+              iosClientId: _iosClientId,
               token: account.accessToken,
               refreshToken: account.refreshToken,
               email: account.email,
@@ -51,7 +60,10 @@ class IntgStrategyGoogle
                       refreshExp: refreshExp);
               },
               httpp: httpp)
-          : GoogleProvider(
+          : TikiStrategyGoogle(
+              redirectUri: _redirectUri,
+              androidClientId: _androidClientId,
+              iosClientId: _iosClientId,
               onLink: (account) => onLinkMap(onLink, account),
               onUnlink: onUnlink,
               httpp: httpp);
@@ -76,10 +88,10 @@ class IntgStrategyGoogle
               onLink: onLink,
               onUnlink: onUnlink,
               onRefresh: onRefresh)
-          .accountWidget();
+          .authButton;
 
   @override
-  AccountModel to(GoogleProviderModel model) => AccountModel(
+  AccountModel to(AuthModel model) => AccountModel(
         username: model.email,
         email: model.email,
         displayName: model.displayName,

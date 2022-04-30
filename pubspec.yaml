@@ -17,12 +17,10 @@ dependencies:
   tiki_style: ^0.0.9
   sqflite_sqlcipher: ^2.1.0
   httpp: ^0.0.3
-  google_provider: ^0.0.9
-  microsoft_provider:
-    path: ../microsoft_provider
-  spam_cards:
-    path: ../spam_cards
-  decision: ^0.0.4
+  tiki_strategy_google: ^0.1.0
+  microsoft_provider: ^0.0.9
+  tiki_spam_cards: ^0.0.5
+  tiki_decision: ^0.0.5
 
 dependency_overrides:
   sqflite:
@@ -34,3 +32,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+false_secrets:
+  - lib/src/intg/intg_strategy_google.dart
+  - lib/src/intg/intg_strategy_microsoft.dart
