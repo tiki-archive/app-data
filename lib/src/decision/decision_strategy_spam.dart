@@ -10,6 +10,7 @@ import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 import '../account/account_model.dart';
 import '../account/account_service.dart';
 import '../email/email_service.dart';
+import '../email/msg/email_msg_model.dart';
 import '../email/sender/email_sender_model.dart';
 import '../intg/intg_context_email.dart';
 import 'decision_strategy.dart';
@@ -26,7 +27,7 @@ class DecisionStrategySpam extends DecisionStrategy {
       : _httpp = httpp,
         super(decision);
 
-  addSpamCards(AccountModel account, List messages) {
+  addSpamCards(AccountModel account, List<EmailMsgModel> messages) {
     _spamCards.addCards(
         provider: account.provider!.value,
         messages: messages,

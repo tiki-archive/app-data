@@ -7,7 +7,7 @@ import 'dart:async';
 
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:httpp/httpp.dart';
-import 'package:microsoft_provider/microsoft_provider.dart';
+import 'package:tiki_strategy_microsoft/tiki_strategy_microsoft.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
@@ -15,12 +15,15 @@ import '../account/account_service.dart';
 import 'intg_strategy_interface.dart';
 
 class IntgStrategyMicrosoft
-    extends IntgStrategyInterface<MicrosoftProvider, MicrosoftProviderModel> {
+    extends IntgStrategyInterface<TikiStrategyMicrosoft, AuthModel> {
+  static const String _redirectUri = "com.mytiki.app://oauth/";
+  static const String _clientId = "6e52a878-7251-4669-8e42-70655255a263";
+
   IntgStrategyMicrosoft(AccountService accountService, {Httpp? httpp})
       : super(accountService, httpp: httpp);
 
   @override
-  MicrosoftProvider construct(
+  TikiStrategyMicrosoft construct(
           {AccountModel? account,
           Function(AccountModel account)? onLink,
           Function(String? username)? onUnlink,
@@ -31,7 +34,9 @@ class IntgStrategyMicrosoft
                   String? refreshToken})?
               onRefresh}) =>
       account != null
-          ? MicrosoftProvider.loggedIn(
+          ? TikiStrategyMicrosoft.loggedIn(
+              redirectUri: _redirectUri,
+              clientId: _clientId,
               token: account.accessToken,
               refreshToken: account.refreshToken,
               email: account.email,
@@ -51,7 +56,9 @@ class IntgStrategyMicrosoft
                       refreshExp: refreshExp);
               },
               httpp: httpp)
-          : MicrosoftProvider(
+          : TikiStrategyMicrosoft(
+              redirectUri: _redirectUri,
+              clientId: _clientId,
               onLink: (account) => onLinkMap(onLink, account),
               onUnlink: onUnlink,
               httpp: httpp);
@@ -76,10 +83,10 @@ class IntgStrategyMicrosoft
               onLink: onLink,
               onUnlink: onUnlink,
               onRefresh: onRefresh)
-          .accountWidget();
+          .authButton;
 
   @override
-  AccountModel to(MicrosoftProviderModel model) => AccountModel(
+  AccountModel to(AuthModel model) => AccountModel(
         username: model.email,
         email: model.email,
         displayName: model.displayName,

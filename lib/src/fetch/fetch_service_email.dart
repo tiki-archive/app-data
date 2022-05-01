@@ -107,7 +107,7 @@ class FetchServiceEmail {
       _log.fine(
           'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
       _process(account,
-          onProcessed: (list) {
+          onProcessed: (List<EmailMsgModel> list) {
             DecisionStrategySpam(
                     _decision, _spamCards, _emailService, _accountService,
                     httpp: _httpp)
@@ -120,7 +120,8 @@ class FetchServiceEmail {
   }
 
   Future<void> _process(AccountModel account,
-      {Function(List)? onProcessed, Function()? onFinish}) async {
+      {Function(List<EmailMsgModel>)? onProcessed,
+      Function()? onFinish}) async {
     if (!await IntgContext(_accountService, httpp: _httpp)
         .isConnected(account)) {
       throw 'ApiOauthAccount ${account.provider} not connected.';
