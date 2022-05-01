@@ -1,10 +1,11 @@
 ## 0.0.1
 
-* Base functionality implemented. Write, Read, Verify
-* Includes a durable caching layer to reduce read CPU 
-  load. Table level security needed.
-* Crypto methods are unit tested
-* Package missing integration & unit tests
-* No remote backup sync function implemented. 
-  Careful with keys, invalid keys will erase chain.
+* Base functionality implemented. 
+* Works but is not ready for prod.
+* Known bugs:
+  * fetchs get stuck in infinite loop with bad tokens
+  * accounts can fail to link and fetches start anyways
+  * fetches continue after unlink
+  * sender upsert overwrite "since" timestamp
+  * spam cards are not fed from already saved emails on startup
 
