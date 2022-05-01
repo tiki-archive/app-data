@@ -22,13 +22,6 @@ dependencies:
   tiki_spam_cards: ^0.0.5
   tiki_decision: ^0.0.5
 
-dependency_overrides:
-  sqflite:
-    git:
-      url: https://www.github.com/davidmartos96/sqflite_sqlcipher.git
-      path: sqflite
-      ref: fmdb_override
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
