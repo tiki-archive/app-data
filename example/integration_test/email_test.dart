@@ -105,15 +105,21 @@ void main() {
             modified: DateTime.now())
       ]);
 
-      await emailService.upsertSenders(
-          [EmailSenderModel(email: email, name: 'Updated Name')]);
+      await emailService.upsertSenders([
+        EmailSenderModel(
+            email: email,
+            name: 'Updated Name',
+            emailSince: DateTime.now().add(Duration(days: 10)))
+      ]);
 
       EmailSenderModel? sender = await emailService.getSenderByEmail(email);
       expect(sender?.senderId != null, true);
       expect(sender?.email, email);
       expect(sender?.name, 'Updated Name');
       expect(sender?.category, 'Test Category');
-      expect(sender?.emailSince != null, true);
+      expect(
+          sender?.emailSince?.isBefore(DateTime.now().add(Duration(days: 1))),
+          true);
       expect(sender?.unsubscribeMailTo, 'unsubscribe@test.com');
       expect(sender?.unsubscribed, false);
       expect(sender?.emailSince != null, true);

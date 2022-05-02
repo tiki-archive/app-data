@@ -81,7 +81,7 @@ class EmailSenderRepository {
           'category=IFNULL(?3, category), '
           'unsubscribe_mail_to=IFNULL(?4, unsubscribe_mail_to), '
           'ignore_until_epoch=IFNULL(?5, ignore_until_epoch), '
-          'email_since_epoch=IFNULL(?6, email_since_epoch), '
+          'email_since_epoch=IFNULL(IIF(?6 < email_since_epoch, ?6, email_since_epoch), email_since_epoch), '
           'unsubscribed_bool=IFNULL(?7, unsubscribed_bool), '
           'company_domain=IFNULL(?8, company_domain), '
           'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
