@@ -38,8 +38,6 @@ class FetchServiceEmail {
   final TikiDecision _decision;
   final AccountService _accountService;
 
-  final Set<int> _processMutex = {};
-
   FetchServiceEmail(this._emailService, this._companyService, this._spamCards,
       this._decision, this._accountService,
       {Httpp? httpp})
@@ -53,7 +51,7 @@ class FetchServiceEmail {
     return this;
   }
 
-  Future<void> index(AccountModel account) async {
+  Future<void> index(AccountModel account, {Function()? onResult}) async {
     if (!await IntgContext(_accountService, httpp: _httpp)
         .isConnected(account)) {
       throw '${account.email} - ${account.provider} not connected.';
@@ -84,7 +82,7 @@ class FetchServiceEmail {
             await _partRepository.upsert<EmailMsgModel>(
                 parts, (msg) => msg?.toMap());
             _log.fine('saved ${messages.length} message indices');
-            process(account);
+            if (onResult != null) onResult();
           },
           onFinish: () async {
             await _lastRepository.upsert(FetchLastModel(
@@ -102,20 +100,20 @@ class FetchServiceEmail {
 
   Future<void> process(AccountModel account) async {
     Completer<void> completer = Completer();
-    if (!_processMutex.contains(account.accountId!)) {
-      _processMutex.add(account.accountId!);
-      _log.fine(
-          'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
-      _process(account,
-          onProcessed: (List<EmailMsgModel> list) {
-            DecisionStrategySpam(
-                    _decision, _spamCards, _emailService, _accountService,
-                    httpp: _httpp)
-                .addSpamCards(account, list);
-          },
-          onFinish: () => completer.complete());
-    } else
-      completer.complete();
+    _log.fine(
+        'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
+    _process(account,
+            onProcessed: (List<EmailMsgModel> list) {
+              DecisionStrategySpam(
+                      _decision, _spamCards, _emailService, _accountService,
+                      httpp: _httpp)
+                  .addSpamCards(account, list);
+            },
+            onFinish: () => completer.complete())
+        .onError((error, stackTrace) => completer.completeError(
+            error ??
+                AsyncError('fetch_service_email process failed', stackTrace),
+            stackTrace));
     return completer.future;
   }
 
@@ -193,7 +191,6 @@ class FetchServiceEmail {
             _process(account, onProcessed: onProcessed);
           });
     } else {
-      _processMutex.remove(account.accountId!);
       if (onFinish != null) onFinish();
     }
   }

@@ -40,7 +40,8 @@ class TikiData {
         database, decision, spamCards, _accountService,
         httpp: httpp);
 
-    _screenService = await ScreenService(_accountService, decision, fetchInbox,
+    _screenService = await ScreenService(
+        _accountService, decision, _fetchService,
         httpp: httpp);
     return this;
   }
@@ -48,8 +49,8 @@ class TikiData {
   Widget widget({Widget? headerBar}) =>
       _screenService.presenter.render(headerBar: headerBar);
 
-  Future<void> fetchInbox({AccountModel? account}) async {
+  Future<void> fetch({AccountModel? account}) async {
     AccountModel? active = account ?? _screenService.model.account;
-    if (active != null) return _fetchService.all(active);
+    if (active != null) return _fetchService.start(active);
   }
 }

@@ -11,6 +11,7 @@ import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../decision/decision_strategy.dart';
+import '../fetch/fetch_service.dart';
 import '../intg/intg_context.dart';
 import 'screen_controller.dart';
 import 'screen_model.dart';
@@ -24,9 +25,9 @@ class ScreenService extends ChangeNotifier {
 
   final AccountService _accountService;
   final TikiDecision _decision;
-  final Future<void> Function({AccountModel account}) _fetchInbox;
+  final FetchService _fetchService;
 
-  ScreenService(this._accountService, this._decision, this._fetchInbox,
+  ScreenService(this._accountService, this._decision, this._fetchService,
       {Httpp? httpp})
       : _httpp = httpp {
     controller = ScreenController(this);
@@ -34,7 +35,7 @@ class ScreenService extends ChangeNotifier {
     _accountService.getAll().then((accounts) {
       if (accounts.isNotEmpty) {
         model.account = accounts.first;
-        _fetchInbox(account: model.account!);
+        _fetchService.start(model.account!);
         notifyListeners();
       }
     });
@@ -43,16 +44,17 @@ class ScreenService extends ChangeNotifier {
   Future<void> saveAccount(AccountModel account) async {
     model.account = account;
     await _accountService.save(account);
-    DecisionStrategy(_decision).setLinked(true);
-    _fetchInbox(account: account);
     notifyListeners();
+    DecisionStrategy(_decision).setLinked(true);
+    _fetchService.start(account);
   }
 
   Future<void> removeAccount(AccountModelProvider type, String username) async {
     model.account = null;
     await _accountService.remove(username, type.value);
-    DecisionStrategy(_decision).setLinked(false);
     notifyListeners();
+    DecisionStrategy(_decision).setLinked(false);
+    _fetchService.stop();
   }
 
   IntgContext get intgContext => IntgContext(_accountService, httpp: _httpp);
