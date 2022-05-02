@@ -25,15 +25,21 @@ class DecisionStrategySpam extends DecisionStrategy {
       this._emailService, this._accountService,
       {Httpp? httpp})
       : _httpp = httpp,
-        super(decision);
-
-  addSpamCards(AccountModel account, List<EmailMsgModel> messages) {
-    _spamCards.addCards(
-        provider: account.provider!.value,
-        messages: messages,
-        onUnsubscribe: (email) => _unsubscribeFromSpam(account, email),
-        onKeep: _keepReceiving);
+        super(decision) {
+    init();
   }
+
+  Future<void> init() async {
+    List<EmailSenderModel> senders = await _emailService.getSendersNotIgnored();
+    //addSpamCards
+  }
+
+  void addSpamCards(AccountModel account, List<EmailMsgModel> messages) =>
+      _spamCards.addCards(
+          provider: account.provider!.value,
+          messages: messages,
+          onUnsubscribe: (email) => _unsubscribeFromSpam(account, email),
+          onKeep: _keepReceiving);
 
   Future<bool> _unsubscribeFromSpam(
       AccountModel account, String senderEmail) async {

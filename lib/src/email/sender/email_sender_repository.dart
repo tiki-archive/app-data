@@ -41,6 +41,16 @@ class EmailSenderRepository {
     return EmailSenderModel.fromMap(rows[0]);
   }
 
+  Future<List<EmailSenderModel>> getByIgnoreUntilBefore(DateTime date,
+      {Transaction? txn}) async {
+    final List<Map<String, Object?>> rows = await _select(
+        where: "ignore_until_epoch < ?",
+        whereArgs: [date.millisecondsSinceEpoch],
+        txn: txn);
+    if (rows.isEmpty) return List.empty();
+    return rows.map((e) => EmailSenderModel.fromMap(e)).toList();
+  }
+
   Future<EmailSenderModel> update(EmailSenderModel sender,
       {Transaction? txn}) async {
     await (txn ?? _database).rawUpdate(

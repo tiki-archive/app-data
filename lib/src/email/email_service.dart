@@ -46,4 +46,7 @@ class EmailService {
 
   Future<EmailSenderModel?> getSenderByEmail(String email) =>
       _repositorySender.getByEmail(email);
+
+  Future<List<EmailSenderModel>> getSendersNotIgnored() =>
+      _repositorySender.getByIgnoreUntilBefore(DateTime.now());
 }
