@@ -8,8 +8,6 @@ import 'dart:async';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
@@ -34,14 +32,11 @@ class FetchServiceEmail {
   final Httpp _httpp;
   final EmailService _emailService;
   final CompanyService _companyService;
-  final TikiSpamCards _spamCards;
-  final TikiDecision _decision;
   final AccountService _accountService;
+  final DecisionStrategySpam _decisionStrategySpam;
 
-  final Set<int> _processMutex = {};
-
-  FetchServiceEmail(this._emailService, this._companyService, this._spamCards,
-      this._decision, this._accountService,
+  FetchServiceEmail(this._emailService, this._companyService,
+      this._decisionStrategySpam, this._accountService,
       {Httpp? httpp})
       : _httpp = httpp ?? Httpp();
 
@@ -53,7 +48,7 @@ class FetchServiceEmail {
     return this;
   }
 
-  Future<void> index(AccountModel account) async {
+  Future<void> index(AccountModel account, {Function()? onResult}) async {
     if (!await IntgContext(_accountService, httpp: _httpp)
         .isConnected(account)) {
       throw '${account.email} - ${account.provider} not connected.';
@@ -84,7 +79,7 @@ class FetchServiceEmail {
             await _partRepository.upsert<EmailMsgModel>(
                 parts, (msg) => msg?.toMap());
             _log.fine('saved ${messages.length} message indices');
-            process(account);
+            if (onResult != null) onResult();
           },
           onFinish: () async {
             await _lastRepository.upsert(FetchLastModel(
@@ -102,20 +97,17 @@ class FetchServiceEmail {
 
   Future<void> process(AccountModel account) async {
     Completer<void> completer = Completer();
-    if (!_processMutex.contains(account.accountId!)) {
-      _processMutex.add(account.accountId!);
-      _log.fine(
-          'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
-      _process(account,
-          onProcessed: (List<EmailMsgModel> list) {
-            DecisionStrategySpam(
-                    _decision, _spamCards, _emailService, _accountService,
-                    httpp: _httpp)
-                .addSpamCards(account, list);
-          },
-          onFinish: () => completer.complete());
-    } else
-      completer.complete();
+    _log.fine(
+        'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
+    _process(account,
+            onProcessed: (List<EmailMsgModel> list) {
+              _decisionStrategySpam.addSpamCards(account, list);
+            },
+            onFinish: () => completer.complete())
+        .onError((error, stackTrace) => completer.completeError(
+            error ??
+                AsyncError('fetch_service_email process failed', stackTrace),
+            stackTrace));
     return completer.future;
   }
 
@@ -193,7 +185,6 @@ class FetchServiceEmail {
             _process(account, onProcessed: onProcessed);
           });
     } else {
-      _processMutex.remove(account.accountId!);
       if (onFinish != null) onFinish();
     }
   }

@@ -6,47 +6,56 @@
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
 import '../company/company_service.dart';
+import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
 import 'fetch_service_email.dart';
 
 class FetchService {
   final _log = Logger('FetchService');
-  final Set<int> _accountMutex = {};
-  late final FetchServiceEmail email;
+  final Map<String, Future<dynamic>> _ongoing = Map();
+
+  late final FetchServiceEmail _email;
 
   Future<FetchService> init(
       EmailService emailService,
       CompanyService companyService,
       Database database,
-      TikiDecision decision,
-      TikiSpamCards spamCards,
+      DecisionStrategySpam strategySpam,
       AccountService accountService,
       {Httpp? httpp}) async {
-    email = await FetchServiceEmail(
-            emailService, companyService, spamCards, decision, accountService,
+    _email = await FetchServiceEmail(
+            emailService, companyService, strategySpam, accountService,
             httpp: httpp)
         .init(database);
     return this;
   }
 
-  Future<void> all(AccountModel account) async {
-    if (!_accountMutex.contains(account.accountId!)) {
-      _accountMutex.add(account.accountId!);
-      _log.fine(
-          'index for ${account.provider?.value} account ${account.email}');
-      await Future.wait(List.from(_index(account))..addAll(_process(account)));
-      _accountMutex.remove(account.accountId!);
-    }
+  void start(AccountModel account) {
+    _emailIndex(account);
+    _emailProcess(account);
   }
 
-  List<Future<dynamic>> _index(AccountModel account) => [email.index(account)];
+  void stop() {
+    List<String> keys = List.from(_ongoing.keys);
+    keys.forEach((key) => _ongoing.remove(key));
+  }
 
-  List<Future<dynamic>> _process(AccountModel account) =>
-      [email.process(account)];
+  void _emailIndex(AccountModel account) {
+    String key = 'email.index';
+    _ongoing.putIfAbsent(
+        key,
+        () => _email
+            .index(account, onResult: () => _emailProcess(account))
+            .then((_) => _ongoing.remove(key)));
+  }
+
+  void _emailProcess(AccountModel account) {
+    String key = 'email.process';
+    _ongoing.putIfAbsent(
+        key, () => _email.process(account).then((_) => _ongoing.remove(key)));
+  }
 }

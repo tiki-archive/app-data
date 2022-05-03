@@ -105,15 +105,21 @@ void main() {
             modified: DateTime.now())
       ]);
 
-      await emailService.upsertSenders(
-          [EmailSenderModel(email: email, name: 'Updated Name')]);
+      await emailService.upsertSenders([
+        EmailSenderModel(
+            email: email,
+            name: 'Updated Name',
+            emailSince: DateTime.now().add(Duration(days: 10)))
+      ]);
 
       EmailSenderModel? sender = await emailService.getSenderByEmail(email);
       expect(sender?.senderId != null, true);
       expect(sender?.email, email);
       expect(sender?.name, 'Updated Name');
       expect(sender?.category, 'Test Category');
-      expect(sender?.emailSince != null, true);
+      expect(
+          sender?.emailSince?.isBefore(DateTime.now().add(Duration(days: 1))),
+          true);
       expect(sender?.unsubscribeMailTo, 'unsubscribe@test.com');
       expect(sender?.unsubscribed, false);
       expect(sender?.emailSince != null, true);
@@ -204,6 +210,54 @@ void main() {
       expect(
           updated?.ignoreUntil?.isAfter(DateTime.now().add(Duration(days: 59))),
           true);
+    });
+
+    test('GetByIgnoreUntilBeforeNow - Success', () async {
+      Database database = await openDatabase('${Uuid().v4()}.db');
+      await CompanyRepository(database).createTable();
+      EmailService emailService = await EmailService().open(database);
+
+      String email1 = Uuid().v4() + '@test.com';
+      String email2 = Uuid().v4() + '@test.com';
+      String email3 = Uuid().v4() + '@test.com';
+      int count = await emailService.upsertSenders([
+        EmailSenderModel(
+            email: email1,
+            name: 'Test Name',
+            category: 'Test Category',
+            unsubscribed: false,
+            emailSince: DateTime.now(),
+            unsubscribeMailTo: 'unsubscribe@test.com',
+            ignoreUntil: DateTime.now().subtract(Duration(days: 10)),
+            company: CompanyModel(domain: 'test.com'),
+            created: DateTime.now(),
+            modified: DateTime.now()),
+        EmailSenderModel(
+            email: email2,
+            name: 'Test Name',
+            category: 'Test Category',
+            unsubscribed: false,
+            emailSince: DateTime.now(),
+            unsubscribeMailTo: 'unsubscribe@test.com',
+            ignoreUntil: DateTime.now().add(Duration(days: 10)),
+            company: CompanyModel(domain: 'test.com'),
+            created: DateTime.now(),
+            modified: DateTime.now()),
+        EmailSenderModel(
+            email: email2,
+            name: 'Test Name',
+            category: 'Test Category',
+            unsubscribed: false,
+            emailSince: DateTime.now(),
+            unsubscribeMailTo: 'unsubscribe@test.com',
+            company: CompanyModel(domain: 'test.com'),
+            created: DateTime.now(),
+            modified: DateTime.now())
+      ]);
+
+      List<EmailSenderModel> senders =
+          await emailService.getSendersNotIgnored();
+      expect(senders.length, 2);
     });
 
     test('UpsertMessages - Insert - Success', () async {

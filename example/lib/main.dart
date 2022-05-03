@@ -3,18 +3,18 @@ import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:tiki_data/tiki_data.dart';
 import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_cards/tiki_spam_cards.dart';
+import 'package:tiki_kv/tiki_kv.dart';
+import 'package:tiki_spam_card/tiki_spam_card.dart';
 import 'package:tiki_style/tiki_style.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Database database = await openDatabase('tiki_data_test.db');
-  TikiDecision decision = await TikiDecision().init();
+  TikiKv tikiKv = await TikiKv(database: database).init();
+  TikiDecision decision = await TikiDecision(tikiKv: tikiKv).init();
   TikiData tikiData = await TikiData().init(
-      database: database,
-      spamCards: TikiSpamCards(decision: decision),
-      decision: decision);
+      database: database, spamCard: TikiSpamCard(decision), decision: decision);
 
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) =>

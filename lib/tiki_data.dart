@@ -7,11 +7,12 @@ import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_cards/tiki_spam_cards.dart';
+import 'package:tiki_spam_card/tiki_spam_card.dart';
 
 import 'src/account/account_model.dart';
 import 'src/account/account_service.dart';
 import 'src/company/company_service.dart';
+import 'src/decision/decision_strategy_spam.dart';
 import 'src/email/email_service.dart';
 import 'src/enrich/enrich_service.dart';
 import 'src/fetch/fetch_service.dart';
@@ -27,7 +28,7 @@ class TikiData {
 
   Future<TikiData> init(
       {required Database database,
-      required TikiSpamCards spamCards,
+      required TikiSpamCard spamCard,
       required TikiDecision decision,
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
       Httpp? httpp}) async {
@@ -36,11 +37,15 @@ class TikiData {
     _accountService = await AccountService().open(database);
     _emailService = await EmailService().open(database);
 
+    DecisionStrategySpam decisionStrategySpam = DecisionStrategySpam(
+        decision, spamCard, _emailService, _accountService);
+
     _fetchService = await FetchService().init(_emailService, _companyService,
-        database, decision, spamCards, _accountService,
+        database, decisionStrategySpam, _accountService,
         httpp: httpp);
 
-    _screenService = await ScreenService(_accountService, decision, fetchInbox,
+    _screenService = await ScreenService(
+        _accountService, _fetchService, decisionStrategySpam,
         httpp: httpp);
     return this;
   }
@@ -48,8 +53,8 @@ class TikiData {
   Widget widget({Widget? headerBar}) =>
       _screenService.presenter.render(headerBar: headerBar);
 
-  Future<void> fetchInbox({AccountModel? account}) async {
+  Future<void> fetch({AccountModel? account}) async {
     AccountModel? active = account ?? _screenService.model.account;
-    if (active != null) return _fetchService.all(active);
+    if (active != null) return _fetchService.start(active);
   }
 }
