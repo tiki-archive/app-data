@@ -18,9 +18,11 @@ dependencies:
   sqflite_sqlcipher: ^2.1.0
   httpp: ^0.0.3
   tiki_strategy_google: ^0.1.0
-  tiki_strategy_microsoft: ^0.1.0
-  tiki_spam_cards: ^0.0.5
-  tiki_decision: ^0.0.5
+  tiki_strategy_microsoft: #^0.1.0
+    path: ../strategy_microsoft
+  tiki_spam_card:
+    path: ../spam_card
+  tiki_decision: ^0.0.6
 
 dev_dependencies:
   flutter_test:

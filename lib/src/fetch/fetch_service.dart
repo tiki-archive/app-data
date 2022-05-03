@@ -6,12 +6,11 @@
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
 import '../company/company_service.dart';
+import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
 import 'fetch_service_email.dart';
 
@@ -25,12 +24,11 @@ class FetchService {
       EmailService emailService,
       CompanyService companyService,
       Database database,
-      TikiDecision decision,
-      TikiSpamCards spamCards,
+      DecisionStrategySpam strategySpam,
       AccountService accountService,
       {Httpp? httpp}) async {
     _email = await FetchServiceEmail(
-            emailService, companyService, spamCards, decision, accountService,
+            emailService, companyService, strategySpam, accountService,
             httpp: httpp)
         .init(database);
     return this;
@@ -48,12 +46,16 @@ class FetchService {
 
   void _emailIndex(AccountModel account) {
     String key = 'email.index';
-    _ongoing.putIfAbsent(key,
-        () => _email.index(account, onResult: () => _emailProcess(account)));
+    _ongoing.putIfAbsent(
+        key,
+        () => _email
+            .index(account, onResult: () => _emailProcess(account))
+            .then((_) => _ongoing.remove(key)));
   }
 
   void _emailProcess(AccountModel account) {
     String key = 'email.process';
-    _ongoing.putIfAbsent(key, () => _email.process(account));
+    _ongoing.putIfAbsent(
+        key, () => _email.process(account).then((_) => _ongoing.remove(key)));
   }
 }

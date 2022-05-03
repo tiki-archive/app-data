@@ -44,7 +44,7 @@ class EmailSenderRepository {
   Future<List<EmailSenderModel>> getByIgnoreUntilBefore(DateTime date,
       {Transaction? txn}) async {
     final List<Map<String, Object?>> rows = await _select(
-        where: "ignore_until_epoch < ?",
+        where: "ignore_until_epoch < ? OR ignore_until_epoch IS NULL",
         whereArgs: [date.millisecondsSinceEpoch],
         txn: txn);
     if (rows.isEmpty) return List.empty();

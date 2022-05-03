@@ -8,8 +8,6 @@ import 'dart:async';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
@@ -34,12 +32,11 @@ class FetchServiceEmail {
   final Httpp _httpp;
   final EmailService _emailService;
   final CompanyService _companyService;
-  final TikiSpamCards _spamCards;
-  final TikiDecision _decision;
   final AccountService _accountService;
+  final DecisionStrategySpam _decisionStrategySpam;
 
-  FetchServiceEmail(this._emailService, this._companyService, this._spamCards,
-      this._decision, this._accountService,
+  FetchServiceEmail(this._emailService, this._companyService,
+      this._decisionStrategySpam, this._accountService,
       {Httpp? httpp})
       : _httpp = httpp ?? Httpp();
 
@@ -104,10 +101,7 @@ class FetchServiceEmail {
         'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
     _process(account,
             onProcessed: (List<EmailMsgModel> list) {
-              DecisionStrategySpam(
-                      _decision, _spamCards, _emailService, _accountService,
-                      httpp: _httpp)
-                  .addSpamCards(account, list);
+              _decisionStrategySpam.addSpamCards(account, list);
             },
             onFinish: () => completer.complete())
         .onError((error, stackTrace) => completer.completeError(

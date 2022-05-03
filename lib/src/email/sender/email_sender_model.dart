@@ -44,6 +44,8 @@ class EmailSenderModel {
       if (map['ignore_until_epoch'] != null) {
         ignoreUntil =
             DateTime.fromMillisecondsSinceEpoch(map['ignore_until_epoch']);
+      } else {
+        ignoreUntil = DateTime.fromMillisecondsSinceEpoch(0);
       }
       if (map['email_since_epoch'] != null) {
         emailSince =

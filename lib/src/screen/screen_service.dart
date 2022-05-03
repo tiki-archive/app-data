@@ -11,6 +11,7 @@ import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../decision/decision_strategy.dart';
+import '../decision/decision_strategy_spam.dart';
 import '../fetch/fetch_service.dart';
 import '../intg/intg_context.dart';
 import 'screen_controller.dart';
@@ -24,10 +25,11 @@ class ScreenService extends ChangeNotifier {
   final Httpp? _httpp;
 
   final AccountService _accountService;
-  final TikiDecision _decision;
   final FetchService _fetchService;
+  final DecisionStrategySpam _decisionStrategySpam;
 
-  ScreenService(this._accountService, this._decision, this._fetchService,
+  ScreenService(
+      this._accountService, this._fetchService, this._decisionStrategySpam,
       {Httpp? httpp})
       : _httpp = httpp {
     controller = ScreenController(this);
@@ -36,6 +38,7 @@ class ScreenService extends ChangeNotifier {
       if (accounts.isNotEmpty) {
         model.account = accounts.first;
         _fetchService.start(model.account!);
+        _decisionStrategySpam.loadFromDb(model.account!);
         notifyListeners();
       }
     });
@@ -45,7 +48,8 @@ class ScreenService extends ChangeNotifier {
     model.account = account;
     await _accountService.save(account);
     notifyListeners();
-    DecisionStrategy(_decision).setLinked(true);
+    _decisionStrategySpam.setLinked(true);
+    _decisionStrategySpam.loadFromDb(account);
     _fetchService.start(account);
   }
 
@@ -53,7 +57,7 @@ class ScreenService extends ChangeNotifier {
     model.account = null;
     await _accountService.remove(username, type.value);
     notifyListeners();
-    DecisionStrategy(_decision).setLinked(false);
+    _decisionStrategySpam.setLinked(false);
     _fetchService.stop();
   }
 

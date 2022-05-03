@@ -5,7 +5,7 @@
 
 import 'package:httpp/httpp.dart';
 import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_cards/tiki_spam_cards.dart';
+import 'package:tiki_spam_card/tiki_spam_card.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
@@ -16,30 +16,75 @@ import '../intg/intg_context_email.dart';
 import 'decision_strategy.dart';
 
 class DecisionStrategySpam extends DecisionStrategy {
-  final TikiSpamCards _spamCards;
+  final TikiSpamCard _spamCard;
   final EmailService _emailService;
   final AccountService _accountService;
   final Httpp? _httpp;
 
-  DecisionStrategySpam(TikiDecision decision, this._spamCards,
+  DecisionStrategySpam(TikiDecision decision, this._spamCard,
       this._emailService, this._accountService,
       {Httpp? httpp})
       : _httpp = httpp,
-        super(decision) {
-    init();
+        super(decision);
+
+  void loadFromDb(AccountModel account) {
+    _emailService
+        .getSendersNotIgnored()
+        .then((senders) => senders.forEach((sender) async {
+              List<EmailMsgModel> msgs =
+                  await _emailService.getSenderMessages(sender);
+              addSpamCards(account, msgs);
+            }));
   }
 
-  Future<void> init() async {
-    List<EmailSenderModel> senders = await _emailService.getSendersNotIgnored();
-    //addSpamCards
-  }
+  void addSpamCards(AccountModel account, List<EmailMsgModel> messages) {
+    Map<String, EmailSenderModel> senderMap = {};
+    Map<String, List<EmailMsgModel>> senderMsgMap = {};
+    messages.forEach((msg) {
+      EmailSenderModel? sender = msg.sender;
+      if (sender != null && sender.email != null) {
+        senderMap.putIfAbsent(sender.email!, () => sender);
+        if (senderMsgMap.containsKey(sender.email!)) {
+          List<EmailMsgModel> msgs = List.from(senderMsgMap[sender.email!]!)
+            ..add(msg);
+          senderMsgMap[sender.email!] = msgs;
+        } else
+          senderMsgMap[sender.email!] = [msg];
+      }
+    });
 
-  void addSpamCards(AccountModel account, List<EmailMsgModel> messages) =>
-      _spamCards.addCards(
-          provider: account.provider!.value,
-          messages: messages,
+    Set<CardModel> cards = {};
+    senderMap.entries.forEach((entry) {
+      List<EmailMsgModel>? msgs = senderMsgMap[entry.key];
+      double? openRate;
+      String? frequency;
+
+      if (msgs != null) {
+        frequency = _spamCard.calculateFrequency(
+            msgs.map((e) => e.receivedDate ?? DateTime.now()).toList());
+        openRate =
+            _spamCard.calculateOpenRate(msgs.map((e) => e.openedDate).toList());
+      }
+
+      cards.add(CardModel(
+          strategy: account.provider!.value,
+          logoUrl: entry.value.company?.logo,
+          category: entry.value.category,
+          companyName: entry.value.name,
+          frequency: frequency,
+          sinceYear: entry.value.emailSince?.year.toString(),
+          totalEmails: msgs?.length,
+          openRate: openRate,
+          securityScore: entry.value.company?.securityScore,
+          sensitivityScore: entry.value.company?.sensitivityScore,
+          hackingScore: entry.value.company?.breachScore,
+          senderEmail: entry.value.email,
           onUnsubscribe: (email) => _unsubscribeFromSpam(account, email),
-          onKeep: _keepReceiving);
+          onKeep: _keepReceiving));
+    });
+
+    _spamCard.upsert(cards);
+  }
 
   Future<bool> _unsubscribeFromSpam(
       AccountModel account, String senderEmail) async {

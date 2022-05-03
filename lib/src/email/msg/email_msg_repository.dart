@@ -72,6 +72,14 @@ class EmailMsgRepository {
     return EmailMsgModel.fromMap(rows[0]);
   }
 
+  Future<List<EmailMsgModel>> getBySenderEmail(String senderEmail,
+      {Transaction? txn}) async {
+    final List<Map<String, Object?>> rows = await _select(
+        where: "sender_email = ?", whereArgs: [senderEmail], txn: txn);
+    if (rows.isEmpty) return List.empty();
+    return rows.map((e) => EmailMsgModel.fromMap(e)).toList();
+  }
+
   Future<List<Map<String, Object?>>> _select(
       {String? where, List<Object?>? whereArgs, Transaction? txn}) async {
     List<Map<String, Object?>> rows = await (txn ?? _database).rawQuery(
