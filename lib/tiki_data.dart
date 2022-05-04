@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_card/tiki_spam_card.dart';
+import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import 'src/account/account_model.dart';
 import 'src/account/account_service.dart';
@@ -28,7 +28,7 @@ class TikiData {
 
   Future<TikiData> init(
       {required Database database,
-      required TikiSpamCard spamCard,
+      required TikiSpamCards spamCards,
       required TikiDecision decision,
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
       Httpp? httpp}) async {
@@ -38,7 +38,7 @@ class TikiData {
     _emailService = await EmailService().open(database);
 
     DecisionStrategySpam decisionStrategySpam = DecisionStrategySpam(
-        decision, spamCard, _emailService, _accountService);
+        decision, spamCards, _emailService, _accountService);
 
     _fetchService = await FetchService().init(_emailService, _companyService,
         database, decisionStrategySpam, _accountService,

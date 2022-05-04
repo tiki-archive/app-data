@@ -5,7 +5,7 @@
 
 import 'package:httpp/httpp.dart';
 import 'package:tiki_decision/tiki_decision.dart';
-import 'package:tiki_spam_card/tiki_spam_card.dart';
+import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
@@ -16,12 +16,12 @@ import '../intg/intg_context_email.dart';
 import 'decision_strategy.dart';
 
 class DecisionStrategySpam extends DecisionStrategy {
-  final TikiSpamCard _spamCard;
+  final TikiSpamCards _spamCards;
   final EmailService _emailService;
   final AccountService _accountService;
   final Httpp? _httpp;
 
-  DecisionStrategySpam(TikiDecision decision, this._spamCard,
+  DecisionStrategySpam(TikiDecision decision, this._spamCards,
       this._emailService, this._accountService,
       {Httpp? httpp})
       : _httpp = httpp,
@@ -60,10 +60,10 @@ class DecisionStrategySpam extends DecisionStrategy {
       String? frequency;
 
       if (msgs != null) {
-        frequency = _spamCard.calculateFrequency(
+        frequency = _spamCards.calculateFrequency(
             msgs.map((e) => e.receivedDate ?? DateTime.now()).toList());
-        openRate =
-            _spamCard.calculateOpenRate(msgs.map((e) => e.openedDate).toList());
+        openRate = _spamCards
+            .calculateOpenRate(msgs.map((e) => e.openedDate).toList());
       }
 
       cards.add(CardModel(
@@ -83,7 +83,7 @@ class DecisionStrategySpam extends DecisionStrategy {
           onKeep: _keepReceiving));
     });
 
-    _spamCard.upsert(cards);
+    _spamCards.upsert(cards);
   }
 
   Future<bool> _unsubscribeFromSpam(
