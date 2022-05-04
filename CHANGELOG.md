@@ -1,3 +1,10 @@
+## 0.0.2
+
+* Fixed bugs in data fetch
+* Fixed bugs in link state mgmt
+* Added ability to load spam cards from DB
+* Updated to new spam_cards api
+
 ## 0.0.1
 
 * Base functionality implemented. 
