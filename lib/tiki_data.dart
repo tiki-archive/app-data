@@ -31,8 +31,10 @@ class TikiData {
       required TikiSpamCards spamCards,
       required TikiDecision decision,
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
+      String? Function()? accessToken,
       Httpp? httpp}) async {
-    _enrichService = EnrichService(httpp: httpp, refresh: refresh);
+    _enrichService =
+        EnrichService(httpp: httpp, refresh: refresh, accessToken: accessToken);
     _companyService = await CompanyService(_enrichService).open(database);
     _accountService = await AccountService().open(database);
     _emailService = await EmailService().open(database);

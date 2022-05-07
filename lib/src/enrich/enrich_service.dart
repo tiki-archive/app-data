@@ -15,17 +15,18 @@ class EnrichService {
   final HttppClient _client;
   final EnrichCompanyRepository _companyRepository;
   final Future<void> Function(void Function(String?)? onSuccess)? refresh;
+  final String? Function() accessToken;
 
-  EnrichService({Httpp? httpp, this.refresh})
+  EnrichService({Httpp? httpp, this.refresh, String? Function()? accessToken})
       : _client = httpp == null ? Httpp().client() : httpp.client(),
+        accessToken = accessToken ?? (() => null),
         _companyRepository = EnrichCompanyRepository();
 
   Future<void> getCompany(
           {required String domain,
-          String? accessToken,
           Function(Object)? onError,
           Function(EnrichCompanyModel?)? onSuccess}) =>
-      _refresh(accessToken, (err) {
+      _refresh(accessToken(), (err) {
         _log.severe(err);
         if (onError != null) onError(err);
       },

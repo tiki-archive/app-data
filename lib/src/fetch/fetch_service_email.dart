@@ -171,7 +171,7 @@ class FetchServiceEmail {
               }
             }
             _log.fine('Saving ${domains.length} companies');
-            for (var domain in domains) {
+            for (String domain in domains) {
               _companyService.upsert(domain);
             }
 
