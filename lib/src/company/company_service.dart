@@ -26,12 +26,11 @@ class CompanyService {
   }
 
   Future<void> upsert(String domain,
-      {Function(CompanyModel?)? onComplete, String? accessToken}) async {
+      {Function(CompanyModel?)? onComplete}) async {
     if (domain.isNotEmpty) {
       CompanyModel? local = await _repository.getByDomain(domain);
       if (local == null) {
         await _enrichService.getCompany(
-            accessToken: accessToken,
             domain: domain,
             onSuccess: (company) async {
               CompanyModel saved = await _repository.insert(CompanyModel(
@@ -49,7 +48,6 @@ class CompanyService {
           local.modified!
               .isBefore(DateTime.now().subtract(const Duration(days: 30)))) {
         await _enrichService.getCompany(
-            accessToken: accessToken,
             domain: domain,
             onSuccess: (company) async {
               CompanyModel saved = await _repository.update(CompanyModel(

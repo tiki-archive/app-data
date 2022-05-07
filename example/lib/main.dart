@@ -15,7 +15,7 @@ void main() async {
   TikiDecision decision = await TikiDecision(tikiKv: tikiKv).init();
   TikiData tikiData = await TikiData().init(
       database: database,
-      _spamCards: TikiSpamCards(decision),
+      spamCards: TikiSpamCards(decision),
       decision: decision);
 
   Logger.root.level = Level.ALL;
