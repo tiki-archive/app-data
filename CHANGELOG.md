@@ -1,3 +1,7 @@
+## 0.0.3
+
+* Bug fixes for access token and refresh
+
 ## 0.0.2
 
 * Fixed bugs in data fetch
