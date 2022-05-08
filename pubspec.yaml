@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   logging: ^1.0.1
   provider: ^6.0.2
-  tiki_style: ^0.0.14
+  tiki_style: ^0.0.17
   sqflite_sqlcipher: ^2.1.0
   httpp: ^0.0.3
   tiki_strategy_google: ^0.1.2
