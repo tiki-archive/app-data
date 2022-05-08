@@ -1,3 +1,7 @@
+## 0.0.5
+
+* Fixed bug with setting linked state on load
+
 ## 0.0.4
 
 * Bumped google, microsoft, spam, and decision versions
