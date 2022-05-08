@@ -1,3 +1,7 @@
+## 0.0.4
+
+* Bumped google, microsoft, spam, and decision versions
+
 ## 0.0.3
 
 * Bug fixes for access token and refresh
