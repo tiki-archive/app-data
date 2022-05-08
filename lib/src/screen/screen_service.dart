@@ -35,6 +35,7 @@ class ScreenService extends ChangeNotifier {
     _accountService.getAll().then((accounts) {
       if (accounts.isNotEmpty) {
         model.account = accounts.first;
+        _decisionStrategySpam.setLinked(true);
         _fetchService.start(model.account!);
         _decisionStrategySpam.loadFromDb(model.account!);
         notifyListeners();
