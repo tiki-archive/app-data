@@ -79,10 +79,10 @@ class DecisionStrategySpam extends DecisionStrategy {
           sensitivityScore: entry.value.company?.sensitivityScore,
           hackingScore: entry.value.company?.breachScore,
           senderEmail: entry.value.email,
-          onUnsubscribe: () {
+          onUnsubscribe: () async {
             _unsubscribeFromSpam(account, entry.value.email!);
           },
-          onKeep: () {
+          onKeep: () async {
             _keepReceiving(entry.value.email!);
           }));
     });
