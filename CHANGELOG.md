@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Version bump decision & spam card
+
 ## 0.0.5
 
 * Fixed bug with setting linked state on load
