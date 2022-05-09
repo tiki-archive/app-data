@@ -1,3 +1,8 @@
+## 0.0.7
+
+* fixed issues with spam card callbacks
+* fixed bug with bool persistence in email sender
+
 ## 0.0.6
 
 * Version bump decision & spam card
