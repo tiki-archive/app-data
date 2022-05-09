@@ -71,7 +71,7 @@ class EmailSenderRepository {
         sender.unsubscribeMailTo,
         sender.ignoreUntil?.millisecondsSinceEpoch,
         sender.emailSince?.millisecondsSinceEpoch,
-        sender.unsubscribed,
+        sender.unsubscribed == true ? 1 : 0,
         sender.company?.domain
       ],
     );
@@ -103,7 +103,7 @@ class EmailSenderRepository {
             sender.unsubscribeMailTo,
             sender.ignoreUntil?.millisecondsSinceEpoch,
             sender.emailSince?.millisecondsSinceEpoch,
-            sender.unsubscribed,
+            sender.unsubscribed == true ? 1 : 0,
             sender.company?.domain
           ],
         );
