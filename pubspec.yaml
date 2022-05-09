@@ -20,7 +20,7 @@ dependencies:
   tiki_strategy_google: ^0.1.2
   tiki_strategy_microsoft: ^0.1.2
   tiki_spam_cards: ^0.0.8
-  tiki_decision: ^0.0.8
+  tiki_decision: ^0.0.9
 
 dev_dependencies:
   flutter_test:
