@@ -12,6 +12,7 @@ import '../account/account_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
+import '../graph/graph_strategy_email.dart';
 import 'fetch_service_email.dart';
 
 class FetchService {
@@ -26,9 +27,10 @@ class FetchService {
       Database database,
       DecisionStrategySpam strategySpam,
       AccountService accountService,
+      GraphStrategyEmail graphStrategyEmail,
       {Httpp? httpp}) async {
-    _email = await FetchServiceEmail(
-            emailService, companyService, strategySpam, accountService,
+    _email = await FetchServiceEmail(emailService, companyService, strategySpam,
+            accountService, graphStrategyEmail,
             httpp: httpp)
         .init(database);
     return this;

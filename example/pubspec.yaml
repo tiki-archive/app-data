@@ -17,6 +17,11 @@ dependencies:
     path: ../
   tiki_spam_cards: ^0.0.9
   tiki_decision: ^0.0.10
+  tiki_wallet:
+    path: ../../wallet
+  httpp: ^0.0.4
+  tiki_localgraph:
+    path: ../../localgraph
 
 dev_dependencies:
   flutter_test:

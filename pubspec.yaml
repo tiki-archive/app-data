@@ -17,10 +17,14 @@ dependencies:
   tiki_style: ^0.0.17
   sqflite_sqlcipher: ^2.1.0
   httpp: ^0.0.3
-  tiki_strategy_google: ^0.1.2
+  pointycastle: ^3.5.2
+  tiki_strategy_google:
+    path: ../strategy_google
   tiki_strategy_microsoft: ^0.1.2
   tiki_spam_cards: ^0.0.9
   tiki_decision: ^0.0.10
+  tiki_localgraph:
+    path: ../localgraph
 
 dev_dependencies:
   flutter_test:

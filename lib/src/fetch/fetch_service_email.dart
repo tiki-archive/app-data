@@ -17,6 +17,7 @@ import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
 import '../email/msg/email_msg_model.dart';
 import '../email/sender/email_sender_model.dart';
+import '../graph/graph_strategy_email.dart';
 import '../intg/intg_context.dart';
 import '../intg/intg_context_email.dart';
 import 'fetch_api_enum.dart';
@@ -34,9 +35,14 @@ class FetchServiceEmail {
   final CompanyService _companyService;
   final AccountService _accountService;
   final DecisionStrategySpam _decisionStrategySpam;
+  final GraphStrategyEmail _graphStrategyEmail;
 
-  FetchServiceEmail(this._emailService, this._companyService,
-      this._decisionStrategySpam, this._accountService,
+  FetchServiceEmail(
+      this._emailService,
+      this._companyService,
+      this._decisionStrategySpam,
+      this._accountService,
+      this._graphStrategyEmail,
       {Httpp? httpp})
       : _httpp = httpp ?? Httpp();
 
@@ -102,6 +108,7 @@ class FetchServiceEmail {
     _process(account,
             onProcessed: (List<EmailMsgModel> list) {
               _decisionStrategySpam.addSpamCards(account, list);
+              _graphStrategyEmail.write(list);
             },
             onFinish: () => completer.complete())
         .onError((error, stackTrace) => completer.completeError(
