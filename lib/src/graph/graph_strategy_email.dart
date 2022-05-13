@@ -15,15 +15,14 @@ import '../email/msg/email_msg_model.dart';
 import 'graph_strategy.dart';
 
 class GraphStrategyEmail extends GraphStrategy {
-  final String? Function() accessToken;
+  GraphStrategyEmail(TikiLocalGraph localGraph) : super(localGraph);
 
-  GraphStrategyEmail(TikiLocalGraph localGraph,
-      {String? Function()? accessToken})
-      : accessToken = accessToken ?? (() => null),
-        super(localGraph);
-
-  write(List<EmailMsgModel> emails) =>
-      localGraph.add(_edges(emails), accessToken: accessToken());
+  Future<List<String>> write(List<EmailMsgModel> emails) {
+    if (emails.length > 0)
+      return localGraph.add(_edges(emails));
+    else
+      return Future.value(List.empty());
+  }
 
   List<TikiLocalGraphEdge> _edges(List<EmailMsgModel> emails) {
     List<TikiLocalGraphEdge> edges = [];

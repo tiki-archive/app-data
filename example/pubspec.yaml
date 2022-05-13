@@ -19,7 +19,7 @@ dependencies:
   tiki_decision: ^0.0.10
   tiki_wallet: ^0.0.17
   httpp: ^0.0.4
-  tiki_localgraph: ^0.0.3
+  tiki_localgraph: ^0.0.5
 
 dev_dependencies:
   flutter_test:

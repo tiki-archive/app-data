@@ -45,11 +45,13 @@ class TikiData {
     DecisionStrategySpam decisionStrategySpam = DecisionStrategySpam(
         decision, spamCards, _emailService, _accountService);
 
-    GraphStrategyEmail graphStrategyEmail =
-        GraphStrategyEmail(localGraph, accessToken: accessToken);
-
-    _fetchService = await FetchService().init(_emailService, _companyService,
-        database, decisionStrategySpam, _accountService, graphStrategyEmail,
+    _fetchService = await FetchService().init(
+        _emailService,
+        _companyService,
+        database,
+        decisionStrategySpam,
+        _accountService,
+        GraphStrategyEmail(localGraph),
         httpp: httpp);
 
     _screenService = await ScreenService(

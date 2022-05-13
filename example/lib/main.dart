@@ -20,10 +20,10 @@ void main() async {
 
   TikiKeysModel keys = await TikiKeysService().generate();
   TikiChainService chainService = await TikiChainService(keys).open(
-      database: database, kv: tikiKv, httpp: httpp, accessToken: accessToken());
+      database: database, kv: tikiKv, httpp: httpp, accessToken: accessToken);
 
   TikiLocalGraph localGraph = await TikiLocalGraph(chainService)
-      .open(database, httpp: httpp, accessToken: accessToken());
+      .open(database, httpp: httpp, accessToken: accessToken);
 
   TikiData tikiData = await TikiData().init(
       database: database,
