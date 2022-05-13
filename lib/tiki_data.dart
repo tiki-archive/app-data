@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:tiki_decision/tiki_decision.dart';
+import 'package:tiki_localgraph/tiki_localgraph.dart';
 import 'package:tiki_spam_cards/tiki_spam_cards.dart';
 
 import 'src/account/account_model.dart';
@@ -16,6 +17,7 @@ import 'src/decision/decision_strategy_spam.dart';
 import 'src/email/email_service.dart';
 import 'src/enrich/enrich_service.dart';
 import 'src/fetch/fetch_service.dart';
+import 'src/graph/graph_strategy_email.dart';
 import 'src/screen/screen_service.dart';
 
 class TikiData {
@@ -30,6 +32,7 @@ class TikiData {
       {required Database database,
       required TikiSpamCards spamCards,
       required TikiDecision decision,
+      required TikiLocalGraph localGraph,
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
       String? Function()? accessToken,
       Httpp? httpp}) async {
@@ -42,8 +45,13 @@ class TikiData {
     DecisionStrategySpam decisionStrategySpam = DecisionStrategySpam(
         decision, spamCards, _emailService, _accountService);
 
-    _fetchService = await FetchService().init(_emailService, _companyService,
-        database, decisionStrategySpam, _accountService,
+    _fetchService = await FetchService().init(
+        _emailService,
+        _companyService,
+        database,
+        decisionStrategySpam,
+        _accountService,
+        GraphStrategyEmail(localGraph),
         httpp: httpp);
 
     _screenService = await ScreenService(

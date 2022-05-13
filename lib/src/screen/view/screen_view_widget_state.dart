@@ -54,7 +54,7 @@ class ScreenViewWidgetState extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: ColorProvider.tikiBlue,
                     fontSize: SizeProvider.instance.text(14),
-                    package: 'tiki_style'))),
+                    package: TextProvider.package))),
       ],
     );
   }

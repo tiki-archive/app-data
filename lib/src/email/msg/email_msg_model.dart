@@ -12,6 +12,7 @@ class EmailMsgModel {
   DateTime? receivedDate;
   DateTime? openedDate;
   String? toEmail;
+  String? subject;
   DateTime? created;
   DateTime? modified;
 
@@ -22,6 +23,7 @@ class EmailMsgModel {
       this.receivedDate,
       this.openedDate,
       this.toEmail,
+      this.subject,
       this.created,
       this.modified});
 
@@ -31,6 +33,7 @@ class EmailMsgModel {
       extMessageId = map['ext_message_id'];
       sender = EmailSenderModel.fromMap(map['sender']);
       toEmail = map['to_email'];
+      subject = map['subject'];
       if (map['received_date_epoch'] != null) {
         receivedDate =
             DateTime.fromMillisecondsSinceEpoch(map['received_date_epoch']);
@@ -56,6 +59,7 @@ class EmailMsgModel {
       'received_date_epoch': receivedDate?.millisecondsSinceEpoch,
       'opened_date_epoch': openedDate?.millisecondsSinceEpoch,
       'to_email': toEmail,
+      'subject': subject,
       'modified_epoch': modified?.millisecondsSinceEpoch,
       'created_epoch': created?.millisecondsSinceEpoch
     };
