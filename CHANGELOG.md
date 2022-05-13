@@ -1,3 +1,8 @@
+## 0.0.8
+
+* added push to localgraph
+* added subject persist
+
 ## 0.0.7
 
 * fixed issues with spam card callbacks
