@@ -92,6 +92,10 @@ class DecisionStrategySpam extends DecisionStrategy {
     _spamCards.upsert(cards);
   }
 
+  void clear() {
+    _spamCards.clearDecision();
+  }
+
   Future<bool> _unsubscribeFromSpam(
       AccountModel account, String senderEmail) async {
     EmailSenderModel? sender =

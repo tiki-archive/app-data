@@ -17,8 +17,9 @@ class EmailService {
   static const Duration _ignoreDuration = Duration(days: 60);
 
   Future<EmailService> open(Database database) async {
-    if (!database.isOpen)
+    if (!database.isOpen) {
       throw ArgumentError.value(database, 'database', 'database is not open');
+    }
     _repositoryMsg = EmailMsgRepository(database);
     _repositorySender = EmailSenderRepository(database);
     await _repositoryMsg.createTable();
@@ -54,4 +55,10 @@ class EmailService {
       sender.email != null
           ? _repositoryMsg.getBySenderEmail(sender.email!)
           : Future.value(List.empty());
+
+  Future<void> removeAllEmailData() async{
+    await _repositorySender.truncate();
+    await _repositoryMsg.truncate();
+  }
+
 }

@@ -13,7 +13,8 @@ import 'screen_view_widget_soon.dart';
 import 'screen_view_widget_state.dart';
 
 class ScreenViewLayoutBody extends StatelessWidget {
-  const ScreenViewLayoutBody();
+
+  const ScreenViewLayoutBody({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +30,8 @@ class ScreenViewLayoutBody extends StatelessWidget {
                   children: [
                     ScreenViewWidgetState(
                         image: isLinked
-                            ? ImgProvider.dataStateHappy
-                            : ImgProvider.dataStateSad,
+                            ? ImgProvider.pineappleHappy
+                            : ImgProvider.pineappleSad,
                         summary:
                             isLinked ? "All good!" : "Uh-oh. No data just yet!",
                         description: isLinked

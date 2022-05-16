@@ -44,12 +44,12 @@ class ScreenViewWidgetSoon extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ScreenViewWidgetSoonImg(
-                          image: ImgProvider.dataSoonApple,
+                          image: ImgProvider.appleSoon,
                           label: 'Apple Mail'),
                       ScreenViewWidgetSoonImg(
-                          image: ImgProvider.dataSoonYahoo, label: 'Yahoo'),
+                          image: ImgProvider.yahooSoon, label: 'Yahoo'),
                       ScreenViewWidgetSoonImg(
-                          image: ImgProvider.dataSoonMore,
+                          image: ImgProvider.moreSoon,
                           label: '...and more'),
                     ]))
           ],

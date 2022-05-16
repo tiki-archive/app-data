@@ -134,4 +134,8 @@ class EmailMsgRepository {
       return messageMap;
     }).toList();
   }
+
+  Future<void> truncate() async {
+    await _database.delete(_table);
+  }
 }

@@ -115,6 +115,10 @@ class EmailSenderRepository {
     }
   }
 
+  Future<void> truncate() async{
+    _database.delete(_table);
+  }
+
   Future<List<Map<String, Object?>>> _select(
       {String? where, List<Object?>? whereArgs, Transaction? txn}) async {
     List<Map<String, Object?>> rows = await (txn ?? _database).rawQuery(

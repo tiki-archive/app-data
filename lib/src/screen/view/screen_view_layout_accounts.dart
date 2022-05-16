@@ -12,7 +12,7 @@ import '../../account/account_model_provider.dart';
 import '../screen_service.dart';
 
 class ScreenViewLayoutAccounts extends StatelessWidget {
-  const ScreenViewLayoutAccounts();
+   const ScreenViewLayoutAccounts({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

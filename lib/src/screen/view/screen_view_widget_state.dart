@@ -14,7 +14,7 @@ class ScreenViewWidgetState extends StatelessWidget {
   final String description;
   final Color color;
 
-  ScreenViewWidgetState(
+  const ScreenViewWidgetState(
       {Key? key,
       required this.image,
       required this.summary,
