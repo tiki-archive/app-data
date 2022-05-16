@@ -28,19 +28,20 @@ class DecisionStrategySpam extends DecisionStrategy {
         super(decision);
 
   Future<void> loadFromDb(AccountModel account) async {
-    await _emailService
-        .getSendersNotIgnored()
-        .then((senders) => senders.forEach((sender) async {
-              List<EmailMsgModel> msgs =
-                  await _emailService.getSenderMessages(sender);
-              addSpamCards(account, msgs);
-            }));
+    List<EmailSenderModel> senders = await _emailService.getSendersNotIgnored();
+    for (var sender in senders) {
+      if(sender.unsubscribed != null && !sender.unsubscribed!) {
+        List<EmailMsgModel> msgs =
+            await _emailService.getSenderMessages(sender);
+        addSpamCards(account, msgs);
+      }
+    }
   }
 
   void addSpamCards(AccountModel account, List<EmailMsgModel> messages) {
     Map<String, EmailSenderModel> senderMap = {};
     Map<String, List<EmailMsgModel>> senderMsgMap = {};
-    messages.forEach((msg) {
+    for (var msg in messages) {
       EmailSenderModel? sender = msg.sender;
       if (sender != null && sender.email != null) {
         senderMap.putIfAbsent(sender.email!, () => sender);
@@ -48,13 +49,14 @@ class DecisionStrategySpam extends DecisionStrategy {
           List<EmailMsgModel> msgs = List.from(senderMsgMap[sender.email!]!)
             ..add(msg);
           senderMsgMap[sender.email!] = msgs;
-        } else
+        } else {
           senderMsgMap[sender.email!] = [msg];
+        }
       }
-    });
+    }
 
     Set<CardModel> cards = {};
-    senderMap.entries.forEach((entry) {
+    for (var entry in senderMap.entries) {
       List<EmailMsgModel>? msgs = senderMsgMap[entry.key];
       double? openRate;
       String? frequency;
@@ -85,7 +87,7 @@ class DecisionStrategySpam extends DecisionStrategy {
           onKeep: () async {
             _keepReceiving(entry.value.email!);
           }));
-    });
+    }
 
     _spamCards.upsert(cards);
   }
@@ -114,6 +116,8 @@ ${account.displayName ?? ''}<br />
         body: body,
         subject: subject,
         onResult: (res) => success = res);
+    if(success) sender.unsubscribed = true;
+    _emailService.upsertSenders([sender]);
     return success;
   }
 
