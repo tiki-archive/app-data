@@ -57,6 +57,16 @@ class TikiData {
     _screenService = await ScreenService(
         _accountService, _fetchService, decisionStrategySpam,
         httpp: httpp);
+
+    List<AccountModel> accounts = await _accountService.getAll();
+    if (accounts.isNotEmpty) {
+        AccountModel account = accounts.first;
+        _screenService.model.account = account;
+        decisionStrategySpam.setLinked(true);
+        _fetchService.start(account);
+        await decisionStrategySpam.loadFromDb(account);
+    }
+
     return this;
   }
 

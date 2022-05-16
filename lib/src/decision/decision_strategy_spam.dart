@@ -27,8 +27,8 @@ class DecisionStrategySpam extends DecisionStrategy {
       : _httpp = httpp,
         super(decision);
 
-  void loadFromDb(AccountModel account) {
-    _emailService
+  Future<void> loadFromDb(AccountModel account) async {
+    await _emailService
         .getSendersNotIgnored()
         .then((senders) => senders.forEach((sender) async {
               List<EmailMsgModel> msgs =
