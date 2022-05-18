@@ -60,11 +60,11 @@ class TikiData {
 
     List<AccountModel> accounts = await _accountService.getAll();
     if (accounts.isNotEmpty) {
-        AccountModel account = accounts.first;
-        _screenService.model.account = account;
-        decisionStrategySpam.setLinked(true);
-        _fetchService.start(account);
-        await decisionStrategySpam.loadFromDb(account);
+      AccountModel account = accounts.first;
+      _screenService.model.account = account;
+      decisionStrategySpam.setLinked(true);
+      _fetchService.start(account);
+      decisionStrategySpam.loadFromDb(account);
     }
 
     return this;
