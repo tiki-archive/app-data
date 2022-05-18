@@ -11,4 +11,6 @@ class DecisionStrategy {
   DecisionStrategy(this._decision);
 
   void setLinked(bool isLinked) => _decision.setLinked(isLinked);
+
+  void clear() => _decision.clear();
 }

@@ -30,7 +30,7 @@ class DecisionStrategySpam extends DecisionStrategy {
   Future<void> loadFromDb(AccountModel account) async {
     List<EmailSenderModel> senders = await _emailService.getSendersNotIgnored();
     for (var sender in senders) {
-      if(sender.unsubscribed != null && !sender.unsubscribed!) {
+      if (sender.unsubscribed != null && !sender.unsubscribed!) {
         List<EmailMsgModel> msgs =
             await _emailService.getSenderMessages(sender);
         addSpamCards(account, msgs);
@@ -92,10 +92,6 @@ class DecisionStrategySpam extends DecisionStrategy {
     _spamCards.upsert(cards);
   }
 
-  void clear() {
-    _spamCards.clearDecision();
-  }
-
   Future<bool> _unsubscribeFromSpam(
       AccountModel account, String senderEmail) async {
     EmailSenderModel? sender =
@@ -120,7 +116,7 @@ ${account.displayName ?? ''}<br />
         body: body,
         subject: subject,
         onResult: (res) => success = res);
-    if(success) sender.unsubscribed = true;
+    if (success) sender.unsubscribed = true;
     _emailService.upsertSenders([sender]);
     return success;
   }
