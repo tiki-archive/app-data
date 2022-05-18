@@ -28,8 +28,8 @@ class ScreenService extends ChangeNotifier {
   final DecisionStrategySpam _decisionStrategySpam;
   final EmailService _emailService;
 
-  ScreenService(
-      this._accountService, this._fetchService, this._decisionStrategySpam, this._emailService,
+  ScreenService(this._accountService, this._fetchService,
+      this._decisionStrategySpam, this._emailService,
       {Httpp? httpp})
       : _httpp = httpp {
     controller = ScreenController(this);
@@ -48,7 +48,7 @@ class ScreenService extends ChangeNotifier {
   Future<void> removeAccount(AccountModelProvider type, String username) async {
     model.account = null;
     await _accountService.remove(username, type.value);
-    await _emailService.removeAllEmailData();
+    await _emailService.deleteAll();
     _decisionStrategySpam.clear();
     notifyListeners();
     _decisionStrategySpam.setLinked(false);
