@@ -3,6 +3,8 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'dart:async';
+
 import 'package:httpp/httpp.dart';
 import 'package:tiki_decision/tiki_decision.dart';
 import 'package:tiki_spam_cards/tiki_spam_cards.dart';
@@ -27,18 +29,21 @@ class DecisionStrategySpam extends DecisionStrategy {
       : _httpp = httpp,
         super(decision);
 
-  Future<void> loadFromDb(AccountModel account) => _emailService
-      .getSendersNotIgnored()
-      .then((senders) => senders.forEach((sender) async {
-            List<EmailMsgModel> msgs =
-                await _emailService.getSenderMessages(sender);
-            addSpamCards(account, msgs);
-          }));
+  Future<void> loadFromDb(AccountModel account) async {
+    List<EmailSenderModel> senders = await _emailService.getSendersNotIgnored();
+    for (EmailSenderModel sender in senders) {
+      if (sender.unsubscribed == null || sender.unsubscribed == false) {
+        List<EmailMsgModel> msgs =
+            await _emailService.getSenderMessages(sender);
+        addSpamCards(account, msgs);
+      }
+    }
+  }
 
   void addSpamCards(AccountModel account, List<EmailMsgModel> messages) {
     Map<String, EmailSenderModel> senderMap = {};
     Map<String, List<EmailMsgModel>> senderMsgMap = {};
-    messages.forEach((msg) {
+    for (EmailMsgModel msg in messages) {
       EmailSenderModel? sender = msg.sender;
       if (sender != null && sender.email != null) {
         senderMap.putIfAbsent(sender.email!, () => sender);
@@ -46,13 +51,14 @@ class DecisionStrategySpam extends DecisionStrategy {
           List<EmailMsgModel> msgs = List.from(senderMsgMap[sender.email!]!)
             ..add(msg);
           senderMsgMap[sender.email!] = msgs;
-        } else
+        } else {
           senderMsgMap[sender.email!] = [msg];
+        }
       }
-    });
+    }
 
     Set<CardModel> cards = {};
-    senderMap.entries.forEach((entry) {
+    for (MapEntry<String, EmailSenderModel> entry in senderMap.entries) {
       List<EmailMsgModel>? msgs = senderMsgMap[entry.key];
       double? openRate;
       String? frequency;
@@ -83,7 +89,7 @@ class DecisionStrategySpam extends DecisionStrategy {
           onKeep: () async {
             _keepReceiving(entry.value.email!);
           }));
-    });
+    }
 
     _spamCards.upsert(cards);
   }
@@ -105,14 +111,18 @@ Thanks,<br /><br />
 ${account.displayName ?? ''}<br />
 <br />
 ''';
-    bool success = false;
-    await IntgContextEmail(_accountService, httpp: _httpp).send(
+    Completer<bool> completer = Completer();
+    IntgContextEmail(_accountService, httpp: _httpp).send(
         account: account,
         to: to,
         body: body,
         subject: subject,
-        onResult: (res) => success = res);
-    return success;
+        onResult: (success) {
+          sender.unsubscribed = success;
+          _emailService.upsertSenders([sender]);
+          completer.complete(success);
+        });
+    return completer.future;
   }
 
   Future<void> _keepReceiving(String senderEmail) async {
