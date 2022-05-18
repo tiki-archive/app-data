@@ -3,6 +3,8 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'dart:async';
+
 import 'package:httpp/httpp.dart';
 import 'package:tiki_decision/tiki_decision.dart';
 import 'package:tiki_spam_cards/tiki_spam_cards.dart';
@@ -29,8 +31,8 @@ class DecisionStrategySpam extends DecisionStrategy {
 
   Future<void> loadFromDb(AccountModel account) async {
     List<EmailSenderModel> senders = await _emailService.getSendersNotIgnored();
-    for (var sender in senders) {
-      if(sender.unsubscribed != null && !sender.unsubscribed!) {
+    for (EmailSenderModel sender in senders) {
+      if (sender.unsubscribed == null || sender.unsubscribed == false) {
         List<EmailMsgModel> msgs =
             await _emailService.getSenderMessages(sender);
         addSpamCards(account, msgs);
@@ -41,7 +43,7 @@ class DecisionStrategySpam extends DecisionStrategy {
   void addSpamCards(AccountModel account, List<EmailMsgModel> messages) {
     Map<String, EmailSenderModel> senderMap = {};
     Map<String, List<EmailMsgModel>> senderMsgMap = {};
-    for (var msg in messages) {
+    for (EmailMsgModel msg in messages) {
       EmailSenderModel? sender = msg.sender;
       if (sender != null && sender.email != null) {
         senderMap.putIfAbsent(sender.email!, () => sender);
@@ -56,7 +58,7 @@ class DecisionStrategySpam extends DecisionStrategy {
     }
 
     Set<CardModel> cards = {};
-    for (var entry in senderMap.entries) {
+    for (MapEntry<String, EmailSenderModel> entry in senderMap.entries) {
       List<EmailMsgModel>? msgs = senderMsgMap[entry.key];
       double? openRate;
       String? frequency;
@@ -109,16 +111,18 @@ Thanks,<br /><br />
 ${account.displayName ?? ''}<br />
 <br />
 ''';
-    bool success = false;
-    await IntgContextEmail(_accountService, httpp: _httpp).send(
+    Completer<bool> completer = Completer();
+    IntgContextEmail(_accountService, httpp: _httpp).send(
         account: account,
         to: to,
         body: body,
         subject: subject,
-        onResult: (res) => success = res);
-    if(success) sender.unsubscribed = true;
-    _emailService.upsertSenders([sender]);
-    return success;
+        onResult: (success) {
+          sender.unsubscribed = success;
+          _emailService.upsertSenders([sender]);
+          completer.complete(success);
+        });
+    return completer.future;
   }
 
   Future<void> _keepReceiving(String senderEmail) async {
