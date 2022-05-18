@@ -10,6 +10,7 @@ import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../decision/decision_strategy_spam.dart';
+import '../email/email_service.dart';
 import '../fetch/fetch_service.dart';
 import '../intg/intg_context.dart';
 import 'screen_controller.dart';
@@ -25,9 +26,10 @@ class ScreenService extends ChangeNotifier {
   final AccountService _accountService;
   final FetchService _fetchService;
   final DecisionStrategySpam _decisionStrategySpam;
+  final EmailService _emailService;
 
-  ScreenService(
-      this._accountService, this._fetchService, this._decisionStrategySpam,
+  ScreenService(this._accountService, this._fetchService,
+      this._decisionStrategySpam, this._emailService,
       {Httpp? httpp})
       : _httpp = httpp {
     controller = ScreenController(this);
@@ -46,6 +48,8 @@ class ScreenService extends ChangeNotifier {
   Future<void> removeAccount(AccountModelProvider type, String username) async {
     model.account = null;
     await _accountService.remove(username, type.value);
+    await _emailService.deleteAll();
+    _decisionStrategySpam.clear();
     notifyListeners();
     _decisionStrategySpam.setLinked(false);
     _fetchService.stop();

@@ -76,4 +76,8 @@ class AccountRepository {
     if (rows.isEmpty) return [];
     return rows.map((e) => AccountModel.fromMap(e)).toList();
   }
+
+  Future<void> truncate() async {
+    _database.delete(_table);
+  }
 }

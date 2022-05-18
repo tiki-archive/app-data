@@ -32,5 +32,7 @@ class AccountService {
   Future<void> remove(String email, String provider) =>
       _repository.deleteByEmailAndProvider(email, provider);
 
+  Future<void> removeAll() => _repository.truncate();
+
   Future<List<AccountModel>> getAll() => _repository.getAll();
 }
