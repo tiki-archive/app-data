@@ -27,15 +27,13 @@ class DecisionStrategySpam extends DecisionStrategy {
       : _httpp = httpp,
         super(decision);
 
-  void loadFromDb(AccountModel account) {
-    _emailService
-        .getSendersNotIgnored()
-        .then((senders) => senders.forEach((sender) async {
-              List<EmailMsgModel> msgs =
-                  await _emailService.getSenderMessages(sender);
-              addSpamCards(account, msgs);
-            }));
-  }
+  Future<void> loadFromDb(AccountModel account) => _emailService
+      .getSendersNotIgnored()
+      .then((senders) => senders.forEach((sender) async {
+            List<EmailMsgModel> msgs =
+                await _emailService.getSenderMessages(sender);
+            addSpamCards(account, msgs);
+          }));
 
   void addSpamCards(AccountModel account, List<EmailMsgModel> messages) {
     Map<String, EmailSenderModel> senderMap = {};
