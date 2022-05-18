@@ -54,9 +54,18 @@ class TikiData {
         GraphStrategyEmail(localGraph),
         httpp: httpp);
 
-    _screenService = await ScreenService(
-        _accountService, _fetchService, decisionStrategySpam,
+    _screenService = ScreenService(
+        _accountService, _fetchService, decisionStrategySpam, _emailService,
         httpp: httpp);
+
+    List<AccountModel> accounts = await _accountService.getAll();
+    if (accounts.isNotEmpty) {
+      AccountModel account = accounts.first;
+      _screenService.model.account = account;
+      decisionStrategySpam.setLinked(true);
+      _fetchService.start(account);
+      decisionStrategySpam.loadFromDb(account);
+    }
     return this;
   }
 
@@ -66,5 +75,10 @@ class TikiData {
   Future<void> fetch({AccountModel? account}) async {
     AccountModel? active = account ?? _screenService.model.account;
     if (active != null) return _fetchService.start(active);
+  }
+
+  Future<void> deleteAll() async {
+    await _accountService.removeAll();
+    await _emailService.deleteAll();
   }
 }

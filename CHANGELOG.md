@@ -1,3 +1,9 @@
+## 0.0.9
+
+* fixed init bugs
+* remove data on unlink
+* don't show unsubscribed cards
+
 ## 0.0.8
 
 * added push to localgraph

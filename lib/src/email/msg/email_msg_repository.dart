@@ -134,4 +134,6 @@ class EmailMsgRepository {
       return messageMap;
     }).toList();
   }
+
+  Future<void> deleteAll() => _database.delete(_table);
 }
