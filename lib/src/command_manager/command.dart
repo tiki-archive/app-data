@@ -14,32 +14,39 @@ abstract class Command{
   }
 
   @nonVirtual
-  void addManager(CommandManagerService manager){
+  void addManager(CommandManagerService manager) async {
     _managerService = manager;
   }
 
   @nonVirtual
-  void start(){
+  Future<void> enqueue()  async {
+    status = CommandStatus.enqueued;
+    onEnqueue();
+    notify();
+  }
+
+  @nonVirtual
+  Future<void> start() async {
     status = CommandStatus.running;
     onStart();
   }
 
   @nonVirtual
-  void pause(){
-    status = CommandStatus.paused;
+  Future<void> pause() async {
+    status = CommandStatus.idle;
     onPause();
   }
 
   @nonVirtual
-  void resumme(){
-    status = CommandStatus.running;
-    onResume();
+  Future<void> stop() async {
+    status = CommandStatus.idle;
+    onStop();
   }
 
   @nonVirtual
-  void stop(){
-    status = CommandStatus.idle;
-    onStop();
+  Future<void> finish() async {
+    _managerService.finishCommand(this);
+    notify();
   }
 
   @nonVirtual
@@ -47,15 +54,10 @@ abstract class Command{
     _managerService.notify(this);
   }
 
-  @nonVirtual
-  void finish(){
-    _managerService.finishCommand(this);
-    notify();
-  }
-
-  Function onStart();
-  Function onStop();
-  Function onPause();
-  Function onResume();
+  Future Function() onStart();
+  Future Function() onStop();
+  Future Function() onPause();
+  Future Function() onResume();
+  Future Function() onEnqueue();
 
 }

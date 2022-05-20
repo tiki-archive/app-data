@@ -1,5 +1,5 @@
 enum CommandStatus{
   idle,
   running,
-  paused
+  enqueued
 }

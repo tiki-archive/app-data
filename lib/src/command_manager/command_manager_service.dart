@@ -21,34 +21,49 @@ class CommandManagerService{
 
   void addCommand(Command command){
     command.addManager(this);
+    command.status = CommandStatus.enqueued;
     _model.commandQueue.add(command);
     runQueue();
   }
 
-  void finishCommand(Command command) {
-    command.stop();
-    _model.commandQueue.remove(command);
+  void pauseCommand(Command command){
+    command.pause();
     _model.activeCommands--;
-    runQueue();
+    _runCommands(ignore: [command]);
   }
 
   void stopCommand(Command command){
     command.stop();
     _model.activeCommands--;
-    runQueue();
+    _runCommands(ignore: [command]);
+  }
+
+  void resumeCommand(Command command){
+    command.enqueue();
+    _runCommands();
+  }
+
+  Future<void> finishCommand(Command command) async {
+    await command.stop();
+    _model.commandQueue.remove(command);
+    _model.activeCommands--;
+    _runCommands();
   }
 
   void runQueue(){
     if(_queueIsRunning()) return;
-    List<Type> runnningTypes = _getRunningTypes();
+    _runCommands();
+  }
+
+  void pauseQueue(){
     for(Command command in _model.commandQueue){
-      if(_queueIsFull()) break;
-      if(command.status != CommandStatus.running && 
-          !runnningTypes.contains(command.runtimeType)){
-        command.start();
-        _model.activeCommands++;
+      if(_runningQueueIsFull()) break;
+      if(command.status == CommandStatus.running){
+        command.pause();
+        _model.activeCommands--;
       }
     }
+    _model.status = CommandManagerQueueStatus.idle;
   }
 
   void notify(Command command) {
@@ -61,26 +76,6 @@ class CommandManagerService{
     }
   }
 
-  void pauseQueue(){
-    for(Command command in _model.commandQueue){
-      if(_queueIsFull()) break;
-      if(command.status == CommandStatus.running){
-        command.pause();
-        _model.activeCommands--;
-      }
-    }
-  }
-
-  void resumeQueue(){
-    for(Command command in _model.commandQueue){
-      if(_queueIsFull()) break;
-      if(command.status == CommandStatus.paused){
-        command.resumme();
-        _model.activeCommands++;
-      }
-    }
-  }
-
   void subscribe(Type T, Function(Object) callback){
     _addNewListenerToCommandType(T, callback);
   }
@@ -89,11 +84,22 @@ class CommandManagerService{
 
   bool _queueIsRunning() => _model.status == CommandManagerQueueStatus.running;
 
-  bool _queueIsFull() => _model.activeCommands >= _model.activeLimit;
+  bool _runningQueueIsFull() => _model.activeCommands >= _model.activeLimit;
 
-  List<Type> _getRunningTypes() {
-    return _model.commandQueue.where(
+  List<Type> _getRunningTypes() => _model.commandQueue.where(
             (command) => command.status == CommandStatus.running).map(
               (command) => command.runtimeType).toList();
+
+  void _runCommands({List<Command> ignore = const []}) {
+    List<Type> runnningTypes = _getRunningTypes();
+    for(Command command in _model.commandQueue){
+      if(_runningQueueIsFull()) break;
+      if(command.status == CommandStatus.enqueued &&
+          !runnningTypes.contains(command.runtimeType) &&
+          !ignore.contains(command)){
+            command.start();
+            _model.activeCommands++;
+      }
+    }
   }
 }
