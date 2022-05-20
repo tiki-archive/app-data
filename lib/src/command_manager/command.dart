@@ -1,4 +1,4 @@
-import 'command_status.dart';
+import 'model/command_status.dart';
 
 abstract class Command{
   CommandStatus status = CommandStatus.idle;
