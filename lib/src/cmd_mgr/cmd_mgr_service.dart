@@ -1,18 +1,18 @@
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 
 import 'command.dart';
-import 'command_manager_repository.dart';
-import 'model/command_manager_model.dart';
-import 'model/command_manager_queue_status.dart';
+import 'cmd_mgr_repository.dart';
+import 'model/cmd_mgr_model.dart';
+import 'model/cmd_mgr_queue_status.dart';
 import 'model/command_status.dart';
 
-class CommandManagerService{
+class CmdMgrService{
 
-  final CommandManagerRepository _repository;
-  CommandManagerModel _model = CommandManagerModel();
+  final CmdMgrRepository _repository;
+  CmdMgrModel _model = CmdMgrModel();
 
-  CommandManagerService(Database database) :
-      _repository = CommandManagerRepository(database){
+  CmdMgrService(Database database) :
+      _repository = CmdMgrRepository(database){
   }
 
   Future<void> init() async {
@@ -52,10 +52,12 @@ class CommandManagerService{
 
   void runQueue(){
     if(_queueIsRunning()) return;
+    _model.status = CmdMgrQueueStatus.running;
     _runCommands();
   }
 
   void pauseQueue(){
+    if(!_queueIsRunning()) return;
     for(Command command in _model.commandQueue){
       if(_runningQueueIsFull()) break;
       if(command.status == CommandStatus.running){
@@ -63,7 +65,7 @@ class CommandManagerService{
         _model.activeCommands--;
       }
     }
-    _model.status = CommandManagerQueueStatus.idle;
+    _model.status = CmdMgrQueueStatus.idle;
   }
 
   void notify(Command command) {
@@ -76,13 +78,18 @@ class CommandManagerService{
     }
   }
 
-  void subscribe(Type T, Function(Object) callback){
+  void subscribe(Type T, Function(Command) callback){
     _addNewListenerToCommandType(T, callback);
   }
 
-  void _addNewListenerToCommandType(Type T, Function(Object) callback){}
+  void _addNewListenerToCommandType(Type T, Function(Command) callback){
+    if(_model.listeners[T] == null){
+      _model.listeners[T] = [];
+    }
+    _model.listeners[T]!.add(callback);
+  }
 
-  bool _queueIsRunning() => _model.status == CommandManagerQueueStatus.running;
+  bool _queueIsRunning() => _model.status == CmdMgrQueueStatus.running;
 
   bool _runningQueueIsFull() => _model.activeCommands >= _model.activeLimit;
 

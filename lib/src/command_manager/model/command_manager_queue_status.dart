@@ -1,4 +1,0 @@
-enum CommandManagerQueueStatus{
-  idle,
-  running,
-}
