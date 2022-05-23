@@ -4,23 +4,14 @@ import '../command.dart';
 import 'command_manager_queue_status.dart';
 
 class CommandManagerModel{
-  final int activeLimit = 5;
+  final int activeLimit;
   final ListQueue<Command> commandQueue = ListQueue<Command>();
+  final Map<Type, List<Future Function(Command command)>> listeners = {};
+  Map<String, DateTime> lastRun = {};
 
   int activeCommands = 0;
-  Map<Type, List<Future Function(Command command)>> listeners = {};
-  DateTime? lastRun;
   CommandManagerQueueStatus status = CommandManagerQueueStatus.idle;
 
-  CommandManagerModel();
-
-  CommandManagerModel.fromMap(Map<String, Object?> map):
-    lastRun = map['last_run'] != null ? DateTime.parse(map['last_run'].toString()) : null;
-
-  Map<String, Object?> toMap() {
-    return {
-      "last_run" : lastRun?.toIso8601String()
-    };
-  }
+  CommandManagerModel({this.activeLimit = 5});
 
 }

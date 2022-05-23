@@ -14,9 +14,9 @@ class CommandManagerService{
   CommandManagerService(Database database) :
       _repository = CommandManagerRepository(database){
   }
-  
-  Future<void> init() async{
-    _model = CommandManagerModel.fromMap(await _repository.get());
+
+  Future<void> init() async {
+    _model.lastRun = await _repository.getAllLastRun();
   }
 
   void addCommand(Command command){
@@ -91,15 +91,23 @@ class CommandManagerService{
               (command) => command.runtimeType).toList();
 
   void _runCommands({List<Command> ignore = const []}) {
-    List<Type> runnningTypes = _getRunningTypes();
     for(Command command in _model.commandQueue){
       if(_runningQueueIsFull()) break;
-      if(command.status == CommandStatus.enqueued &&
-          !runnningTypes.contains(command.runtimeType) &&
-          !ignore.contains(command)){
+      if(_shouldRun(command, ignore: ignore)){
             command.start();
             _model.activeCommands++;
       }
     }
+  }
+
+  bool _shouldRun(Command command, {List<Command> ignore = const[]}) {
+    if(command.status != CommandStatus.enqueued || ignore.contains(command))
+      return false;
+    List<Type> runnningTypes = _getRunningTypes();
+    Type type = command.runtimeType;
+    if(runnningTypes.contains(command.runtimeType)) return false;
+    DateTime? lastRun = _model.lastRun[type.toString()];
+    if(lastRun == null || lastRun.add(command.minRunInterval).isAfter(DateTime.now())) return false;
+    return true;
   }
 }

@@ -16,22 +16,37 @@ class CommandManagerRepository{
 
   Future<void> createTable() =>
       _database.execute('CREATE TABLE IF NOT EXISTS $_table('
-          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+          'command_type STRING PRIMARY KEY, '
           'last_run DATETIME);');
 
-  Future<void> save(CommandManagerModel model, {Transaction? txn}) async{
-    Map<String, Object?> oldModel = await get();
-    Map<String, Object?> newModel = model.toMap();
-    if(oldModel["last_run"] != null){
-      newModel["id"] = oldModel["id"];
-    }
+  Future<void> upsertLastRun(CommandManagerModel model, DateTime lastRun, {Transaction? txn}) async{
+    String type = model.runtimeType.toString();
     await (txn ?? _database).insert(
       _table,
-        model.toMap()
+      {
+        "command_type" : type,
+        "last_run" : lastRun,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  Future <Map<String, Object?>> get({Transaction? txn}) async{
-    return (await (txn ?? _database).query(_table))[0];
+  Future <DateTime?> getLastRun(CommandManagerModel model, {Transaction? txn}) async{
+    String type = model.runtimeType.toString();
+    String? lastRun = (await (txn ?? _database).query(
+        _table,
+        where: 'command_type = ?',
+        whereArgs: [type]
+    )).first['last_run']?.toString();
+    return lastRun !=null ? DateTime.parse(lastRun) : null;
+  }
+
+  Future<Map<String, DateTime>> getAllLastRun({Transaction? txn}) async{
+    List<Map<String, Object?>> entries = (await (txn ?? _database).query(_table));
+    Map<String, DateTime> lastRuns = {};
+    entries.forEach((element) {
+      lastRuns[element.keys.first] = DateTime.parse(element.values.first.toString());
+    });
+    return lastRuns;
   }
 }

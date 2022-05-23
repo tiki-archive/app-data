@@ -6,6 +6,7 @@ import 'model/command_status.dart';
 abstract class Command{
   late final CommandManagerService _managerService;
   CommandStatus _status = CommandStatus.idle;
+  Duration minRunInterval = Duration.zero;
 
   CommandStatus get status => _status;
   set status(CommandStatus value){
