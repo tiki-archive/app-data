@@ -1,4 +1,0 @@
-enum CmdMgrQueueStatus{
-  idle,
-  running,
-}

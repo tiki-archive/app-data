@@ -1,7 +1,8 @@
 import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 
-import 'model/cmd_mgr_model.dart';
+import 'cmd_mgr_command.dart';
+import 'cmd_mgr_model.dart';
 
 class CmdMgrRepository{
   static const String _table = 'command_manager_meta';
@@ -31,8 +32,8 @@ class CmdMgrRepository{
     );
   }
 
-  Future <DateTime?> getLastRun(CmdMgrModel model, {Transaction? txn}) async{
-    String type = model.runtimeType.toString();
+  Future <DateTime?> getLastRun(CmdMgrCommand command, {Transaction? txn}) async{
+    String type = command.id;
     String? lastRun = (await (txn ?? _database).query(
         _table,
         where: 'command_type = ?',
