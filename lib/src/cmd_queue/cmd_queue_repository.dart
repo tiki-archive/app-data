@@ -1,16 +1,16 @@
 import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 
-import 'cmd_mgr_command.dart';
-import 'cmd_mgr_model.dart';
+import 'cmd_queue_command.dart';
+import 'cmd_queue_model.dart';
 
-class CmdMgrRepository{
+class CmdQueueRepository{
   static const String _table = 'command_manager_meta';
-  final _log = Logger('CmdMgrRepository');
+  final _log = Logger('CmdQueueRepository');
 
   final Database _database;
 
-  CmdMgrRepository(this._database);
+  CmdQueueRepository(this._database);
 
   Future<T> transaction<T>(Future<T> Function(Transaction txn) action) =>
       _database.transaction(action);
@@ -20,7 +20,7 @@ class CmdMgrRepository{
           'command_type STRING PRIMARY KEY, '
           'last_run DATETIME);');
 
-  Future<void> upsertLastRun(CmdMgrModel model, DateTime lastRun, {Transaction? txn}) async{
+  Future<void> upsertLastRun(CmdQueueModel model, DateTime lastRun, {Transaction? txn}) async{
     String type = model.runtimeType.toString();
     await (txn ?? _database).insert(
       _table,
@@ -32,7 +32,7 @@ class CmdMgrRepository{
     );
   }
 
-  Future <DateTime?> getLastRun(CmdMgrCommand command, {Transaction? txn}) async{
+  Future <DateTime?> getLastRun(CmdQueueCommand command, {Transaction? txn}) async{
     String type = command.id;
     String? lastRun = (await (txn ?? _database).query(
         _table,

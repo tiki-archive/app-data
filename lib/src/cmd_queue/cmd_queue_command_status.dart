@@ -1,4 +1,4 @@
-enum CmdMgrCommandStatus{
+enum CmdQueueCommandStatus{
   waiting,
   running,
   paused,
