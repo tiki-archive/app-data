@@ -6,8 +6,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:tiki_data/src/cmd_mgr/command.dart';
-import 'package:tiki_data/src/cmd_mgr/model/command_status.dart';
+import 'package:tiki_data/src/cmd_mgr/cmd_mgr_command.dart';
+import 'package:tiki_data/src/cmd_mgr/cmd_mgr_command_status.dart';
 import 'package:tiki_data/src/cmd_mgr/cmd_mgr_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -21,7 +21,7 @@ void main() {
       CmdMgrService cmdMgr = CmdMgrService(database);
       TestCommand testCommand = TestCommand();
       cmdMgr.addCommand(testCommand);
-      cmdMgr.subscribe(TestCommand, (data) => 'print $data');
+      cmdMgr.subscribe(testCommand.id, (command) async => 'print $command');
       cmdMgr.pauseCommand(testCommand);
       cmdMgr.resumeCommand(testCommand);
       expect(1, 1);
@@ -33,7 +33,7 @@ void main() {
       CmdMgrService cmdMgr = CmdMgrService(database);
       TestCommand testCommand = TestCommand();
       cmdMgr.addCommand(testCommand);
-      cmdMgr.subscribe(TestCommand, (data) {
+      cmdMgr.subscribe(testCommand.id, (data) async {
         receivedData = true;
       });
       cmdMgr.pauseCommand(testCommand);
@@ -45,7 +45,7 @@ void main() {
   });
 }
 
-class TestCommand extends Command{
+class TestCommand extends CmdMgrCommand{
   int count = 10;
 
   @override
@@ -75,16 +75,23 @@ class TestCommand extends Command{
   }
 
   Future<void> _doSomething({required int time}) async {
-    if(this.status == CommandStatus.running) {
-      notify();
+    if(this.status == CmdMgrCommandStatus.running) {
       await(Future.delayed(Duration(seconds: time)));
       if(count > 0){
         count--;
         _doSomething(time: time);
       }else{
-        finish();
+        onStop();
       }
     }
   }
+
+  @override
+  // TODO: implement id
+  String get id => throw UnimplementedError();
+
+  @override
+  // TODO: implement minRunFreq
+  Duration get minRunFreq => throw UnimplementedError();
 
 }

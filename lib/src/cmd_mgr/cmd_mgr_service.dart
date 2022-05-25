@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 
 import 'cmd_mgr_command.dart';
+import 'cmd_mgr_command_event.dart';
 import 'cmd_mgr_model_queue_status.dart';
 import 'cmd_mgr_repository.dart';
 import 'cmd_mgr_model.dart';
@@ -31,12 +32,14 @@ class CmdMgrService{
     _log.finest('Command with id ${command.id} enqueued.');
     _log.finest('Queue has ${_model.commandQueue.length} commands.' );
     _runQueue();
+    notify(command, CmdMgrCommandEvent.add);
     return true;
   }
 
   void pauseCommand(CmdMgrCommand command){
     command.status = CmdMgrCommandStatus.paused;
     _model.activeCommands--;
+    notify(command, CmdMgrCommandEvent.pause);
     _log.finest('Queue has ${_model.activeCommands} commands.' );
     _runCommands(ignore: [command]);
   }
@@ -44,16 +47,18 @@ class CmdMgrService{
   void stopCommand(CmdMgrCommand command) {
     command.status = CmdMgrCommandStatus.stopped;
     _model.activeCommands--;
+    notify(command, CmdMgrCommandEvent.stop);
     _log.finest('Queue has ${_model.activeCommands} commands.' );
     _runCommands();
   }
 
   void resumeCommand(CmdMgrCommand command){
     command.status = CmdMgrCommandStatus.waiting;
+    notify(command, CmdMgrCommandEvent.resume);
     _runCommands();
   }
 
-  void notify(CmdMgrCommand command) {
+  void notify(CmdMgrCommand command, CmdMgrCommandEvent event) {
     if(!_model.listeners.keys.contains(command.id) ||
         _model.listeners[command.id] == null) return;
     List<Function(CmdMgrCommand)> listeners = _model.listeners[command.id]!;
@@ -62,7 +67,7 @@ class CmdMgrService{
     }
   }
 
-  void subscribe(String id, Function(CmdMgrCommand) callback){
+  void subscribe(String id, Future<void> Function(CmdMgrCommand) callback){
     _addNewListenerToCommand(id, callback);
   }
 
@@ -80,12 +85,13 @@ class CmdMgrService{
       if(_isRunningQueueFull()) break;
       if(ignore.contains(command) || !_canRun(command)) continue;
       command.status = CmdMgrCommandStatus.running;
+      notify(command, CmdMgrCommandEvent.start);
       _model.activeCommands++;
       _log.finest('Queue has ${_model.activeCommands} commands.' );
     }
   }
 
-  void _addNewListenerToCommand(String id, Function(CmdMgrCommand) callback){
+  void _addNewListenerToCommand(String id, Future<void> Function(CmdMgrCommand) callback){
     if(_model.listeners[id] == null){
       _model.listeners[id] = [];
     }
