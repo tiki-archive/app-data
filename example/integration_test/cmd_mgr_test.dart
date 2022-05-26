@@ -6,11 +6,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:tiki_data/src/cmd_mgr/cmd_queue_command.dart';
-import 'package:tiki_data/src/cmd_mgr/cmd_queue_command_status.dart';
-import 'package:tiki_data/src/cmd_mgr/cmd_queue_command_event.dart';
-import 'package:tiki_data/src/cmd_mgr/cmd_queue_service.dart';
 import 'package:uuid/uuid.dart';
+import '../../lib/src/cmd_mgr/cmd_mgr_service.dart';
+import '../../lib/src/cmd_mgr/cmd_mgr_command.dart';
+import '../../lib/src/cmd_mgr/cmd_mgr_command_status.dart';
+import '../../lib/src/cmd_mgr/cmd_mgr_command_notification.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -19,49 +19,64 @@ void main() {
 
     test('Run command in queue', () async {
       Database database = await openDatabase('${Uuid().v4()}.db');
-      CmdQueueService CmdQueue = CmdQueueService(database);
+      CmdMgrService CmdMgr = CmdMgrService(database);
       TestCommand testCommand = TestCommand(Uuid().v4().toString());
-      CmdQueue.addCommand(testCommand);
-      CmdQueue.subscribe(testCommand.id, (command, event) async => 'print $command');
-      CmdQueue.pauseCommand(testCommand);
-      CmdQueue.resumeCommand(testCommand);
+      CmdMgr.addCommand(testCommand);
+      testCommand.listeners.add((event) async => 'print ok');
+      CmdMgr.pauseCommand(testCommand.id);
+      CmdMgr.resumeCommand(testCommand.id);
       expect(1, 1);
     });
 
     test('Subscribe to command in queue', () async {
-      List<CmdQueueCommandEvent> receivedData = [];
+      List<CmdMgrCommandNotification> receivedData = [];
       Database database = await openDatabase('${Uuid().v4()}.db');
-      CmdQueueService CmdQueue = CmdQueueService(database);
+      CmdMgrService CmdMgr = CmdMgrService(database);
       String commandId = "Subscribe to command in queue";
       TestCommand testCommand = TestCommand(commandId);
-      CmdQueue.addCommand(testCommand);
-      CmdQueue.subscribe(testCommand.id,  (command, event) async {
+      CmdMgr.addCommand(testCommand);
+      testCommand.listeners.add((event) async {
         receivedData.add(event);
       });
       Future.delayed(Duration(seconds: 2));
-      CmdQueue.pauseCommand(testCommand);
-      CmdQueue.resumeCommand(testCommand);
+      CmdMgr.pauseCommand(testCommand.id);
+      CmdMgr.resumeCommand(testCommand.id);
       expect(receivedData.length, 3);
-      expect(receivedData.contains(CmdQueueCommandEvent.start), true);
-      expect(receivedData.contains(CmdQueueCommandEvent.pause), true);
-      expect(receivedData.contains(CmdQueueCommandEvent.resume), true);
     });
 
     test('Do not add commands with same id', () async {
-      List<CmdQueueCommandEvent> receivedData = [];
       Database database = await openDatabase('${Uuid().v4()}.db');
-      CmdQueueService CmdQueue = CmdQueueService(database);
+      CmdMgrService CmdMgr = CmdMgrService(database);
       String commandId = "sameID";
       TestCommand testCommand = TestCommand(commandId);
       TestCommand testCommand2 = TestCommand(commandId);
-      expect(CmdQueue.addCommand(testCommand), true);
-      expect(CmdQueue.addCommand(testCommand2), false);
+      expect(CmdMgr.addCommand(testCommand), true);
+      expect(CmdMgr.addCommand(testCommand2), false);
     });
 
+
+    test('Do not run commands before minRunFreq ', () async {
+      Database database = await openDatabase('${Uuid().v4()}.db');
+      CmdMgrService CmdMgr = CmdMgrService(database);
+      String commandId = "sameID";
+      TestCommand testCommand = TestCommand(commandId);
+      TestCommand testCommand2 = TestCommand(commandId);
+      expect(CmdMgr.addCommand(testCommand), true);
+      expect(testCommand.status, CmdMgrCommandStatus.running);
+      CmdMgr.stopCommand(testCommand.id);
+      expect(CmdMgr.getAll().isEmpty, true);
+      expect(CmdMgr.addCommand(testCommand2), true);
+      expect(testCommand2.status, CmdMgrCommandStatus.waiting);
+     Future.delayed(Duration(seconds: 5));
+      CmdMgr.resumeCommand(testCommand.id);
+      expect(testCommand.status, CmdMgrCommandStatus.running);
+      CmdMgr.stopCommand(testCommand.id);
+      expect(CmdMgr.getAll().isEmpty, true);
+    });
   });
 }
 
-class TestCommand extends CmdQueueCommand{
+class TestCommand extends CmdMgrCommand{
 
   final String _id;
 
@@ -69,34 +84,42 @@ class TestCommand extends CmdQueueCommand{
 
   @override
   Future<Function()> onPause() async {
+    notify(TestNotification());
     return () => print('paused');
   }
 
   @override
   Future<Function()> onResume() async {
+    notify(TestNotification());
     return () => print('resumed');
   }
 
   @override
   Future<Function()> onStart() async {
-    _doSomething(time: 1);
+    notify(TestNotification());
+    _doSomething(time: 2);
     return () => print('started');
   }
 
   @override
   Future<Function()> onStop() async {
+    notify(TestNotification());
     return () => print('stopped');
   }
 
   Future<void> _doSomething({required int time}) async {
      await(Future.delayed(Duration(seconds: time)));
-     status = CmdQueueCommandStatus.stopped;
+     status = CmdMgrCommandStatus.stopped;
   }
 
   @override
   String get id => _id;
 
   @override
-  Duration get minRunFreq => Duration.zero;
+  Duration get minRunFreq => Duration(seconds: 2);
+
+}
+
+class TestNotification extends CmdMgrCommandNotification{
 
 }

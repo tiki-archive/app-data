@@ -1,27 +1,27 @@
 import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 
-import 'cmd_queue_command.dart';
-import 'cmd_queue_repository.dart';
-import 'cmd_queue_model.dart';
-import 'cmd_queue_command_status.dart';
+import 'cmd_mgr_command.dart';
+import 'cmd_mgr_repository.dart';
+import 'cmd_mgr_model.dart';
+import 'cmd_mgr_command_status.dart';
 
-class CmdQueueService{
+class CmdMgrService{
 
-  Logger _log = Logger('CmdQueueService');
+  Logger _log = Logger('CmdMgrService');
 
-  final CmdQueueRepository _repository;
-  CmdQueueModel _model = CmdQueueModel();
+  final CmdMgrRepository _repository;
+  CmdMgrModel _model = CmdMgrModel();
 
-  CmdQueueService(Database database) :
-      _repository = CmdQueueRepository(database){
+  CmdMgrService(Database database) :
+      _repository = CmdMgrRepository(database){
   }
 
   Future<void> init() async {
     _model.lastRun = await _repository.getAllLastRun();
   }
 
-  bool addCommand(CmdQueueCommand command){
+  bool addCommand(CmdMgrCommand command){
     if(_model.commandQueue.where((element) => element.id == command.id).isNotEmpty) {
       _log.warning('Command with id ${command.id} already enqueued.');
       return false;
@@ -34,18 +34,18 @@ class CmdQueueService{
   }
 
   void resumeCommand(String id){
-    CmdQueueCommand? command = getById(id);
-    if(command?.status == CmdQueueCommandStatus.paused){
-      command!.status = CmdQueueCommandStatus.waiting;
+    CmdMgrCommand? command = getById(id);
+    if(command?.status == CmdMgrCommandStatus.paused){
+      command!.status = CmdMgrCommandStatus.waiting;
       command.onResume();
       _runCommands();
     }
   }
 
   void stopCommand(String id){
-    CmdQueueCommand? command = getById(id);
-    if(command?.status == CmdQueueCommandStatus.running){
-      command!.status = CmdQueueCommandStatus.stopped;
+    CmdMgrCommand? command = getById(id);
+    if(command?.status == CmdMgrCommandStatus.running){
+      command!.status = CmdMgrCommandStatus.stopped;
       command.onStop();
       _model.commandQueue.remove(command);
       _model.activeCommands--;
@@ -54,24 +54,24 @@ class CmdQueueService{
   }
 
   void pauseCommand(String id){
-    CmdQueueCommand? command = getById(id);
-    if(command?.status == CmdQueueCommandStatus.running){
-      command!.status = CmdQueueCommandStatus.paused;
+    CmdMgrCommand? command = getById(id);
+    if(command?.status == CmdMgrCommandStatus.running){
+      command!.status = CmdMgrCommandStatus.paused;
       _model.activeCommands--;
       command.onPause();
       _runCommands();
     }
   }
 
-  List<CmdQueueCommand> getAll() => _model.commandQueue.toList();
+  List<CmdMgrCommand> getAll() => _model.commandQueue.toList();
 
   void _runCommands() {
     int limit = _model.activeLimit - _model.activeCommands;
     for(int i = 0; i < limit; i++){
       try {
-        CmdQueueCommand command = _model.commandQueue.firstWhere((cmd) =>
+        CmdMgrCommand command = _model.commandQueue.firstWhere((cmd) =>
             _canRun(cmd));
-        command.status = CmdQueueCommandStatus.running;
+        command.status = CmdMgrCommandStatus.running;
         _model.activeCommands++;
         command.onStart();
       }catch(e){
@@ -81,14 +81,14 @@ class CmdQueueService{
     }
   }
 
-  bool _canRun(CmdQueueCommand command) {
-      if(command.status != CmdQueueCommandStatus.waiting) return false;
+  bool _canRun(CmdMgrCommand command) {
+      if(command.status != CmdMgrCommandStatus.waiting) return false;
       if(_model.lastRun[command.id] != null && _model.lastRun[command.id]!
           .add(command.minRunFreq).isAfter(DateTime.now())) return false;
       return true;
   }
 
-  CmdQueueCommand? getById(String id){
+  CmdMgrCommand? getById(String id){
     try{
      return _model.commandQueue.firstWhere((element) => element.id == id);
     }catch(e){
