@@ -59,7 +59,6 @@ class FetchServiceEmail {
         .isConnected(account)) {
       throw '${account.email} - ${account.provider} not connected.';
     }
-
     _log.fine(
         'email index ${account.email} on ${DateTime.now().toIso8601String()}');
     Completer<void> completer = Completer();

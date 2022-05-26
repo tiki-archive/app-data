@@ -2,7 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 
 import 'cmd_mgr_command.dart';
-import 'cmd_mgr_repository.dart';
+import 'cmd_mgr_last_run_repository.dart';
 import 'cmd_mgr_model.dart';
 import 'cmd_mgr_command_status.dart';
 
@@ -10,15 +10,15 @@ class CmdMgrService{
 
   Logger _log = Logger('CmdMgrService');
 
-  final CmdMgrRepository _repository;
+  final CmdMgrLastRunRepository _repositoryLastRun;
   CmdMgrModel _model = CmdMgrModel();
 
   CmdMgrService(Database database) :
-      _repository = CmdMgrRepository(database){
+      _repositoryLastRun = CmdMgrLastRunRepository(database){
   }
 
   Future<void> init() async {
-    _model.lastRun = await _repository.getAllLastRun();
+    _model.lastRun = await _repositoryLastRun.getAllLastRun();
   }
 
   bool addCommand(CmdMgrCommand command){
@@ -64,6 +64,8 @@ class CmdMgrService{
   }
 
   List<CmdMgrCommand> getAll() => _model.commandQueue.toList();
+
+  Future<DateTime?> getLastRun(String id) async => await _repositoryLastRun.getLastRun(id);
 
   void _runCommands() {
     int limit = _model.activeLimit - _model.activeCommands;
