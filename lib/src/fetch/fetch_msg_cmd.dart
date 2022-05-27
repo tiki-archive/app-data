@@ -1,30 +1,32 @@
-import 'dart:async';
+import 'dart:core';
 
 import 'package:logging/logging.dart';
 
 import '../account/account_model.dart';
-import '../account/account_service.dart';
 import '../cmd_mgr/cmd_mgr_command.dart';
 import '../cmd_mgr/cmd_mgr_notification_finish.dart';
 import '../email/msg/email_msg_model.dart';
-import '../email/sender/email_sender_model.dart';
-import '../intg/intg_context.dart';
 import '../intg/intg_context_email.dart';
-import 'fetch_inbox_command_notification.dart';
-import 'fetch_messages_command_notification.dart';
+import 'fetch_msg_cmd_notification.dart';
 import 'fetch_part_model.dart';
 
-class FetchInboxCommand extends CmdMgrCommand {
+class FetchMsgCmd extends CmdMgrCommand {
 
-  var _httpp;
   Logger _log = Logger('FetchInboxCommand');
 
-  AccountModel _account;
-  List<EmailMsgModel> _save;
-  List<EmailMsgModel> _fetch;
-  List<EmailMsgModel> message;
-  IntgContextEmail _intgContextEmail;
-  List<FetchPartModel>_parts;
+  final AccountModel _account;
+  final List<FetchPartModel> _parts;
+  final IntgContextEmail _intgContextEmail;
+  final List<EmailMsgModel> _save = [];
+  final List<EmailMsgModel> _fetch = [];
+  final Function()? onFinish;
+
+  FetchMsgCmd(
+      List<FetchPartModel> this._parts,
+      AccountModel this._account,
+      IntgContextEmail this._intgContextEmail,
+      {this.onFinish}
+      );
 
   @override
   String get id => generateId(_account);
@@ -57,7 +59,7 @@ class FetchInboxCommand extends CmdMgrCommand {
   static String generateId(AccountModel account) =>
       'FetchInboxCommand_${account.accountId!}_${account.provider!}';
 
-  _processParts() async {
+  Future<void> _processParts() async {
     List<String> ids = _parts
         .where((part) => part.obj?.extMessageId != null)
         .map((part) => part.obj!.extMessageId! as String)
@@ -71,8 +73,9 @@ class FetchInboxCommand extends CmdMgrCommand {
           if (message.toEmail == _account.email! &&
               message.sender?.unsubscribeMailTo != null) save.add(message);
           fetched.add(message);
+          notify(FetchMessagesCommandNotification(_account, _save, _fetch));
         },
-        onFinish: () => notify(FetchMessagesCommandNotification(_account, _save, _fetch))
+        onFinish: () => onFinish != null ? onFinish!() : null
     );
   }
 }

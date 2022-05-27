@@ -25,7 +25,9 @@ import '../intg/intg_context_email.dart';
 import 'fetch_api_enum.dart';
 import 'fetch_inbox_command.dart';
 import 'fetch_inbox_command_notification.dart';
-import 'fetch_messages_command_notification.dart';
+import 'fetch_msg_cmd.dart';
+import 'fetch_msg_cmd_notification.dart';
+import 'fetch_msg_cmd_notification_finish.dart';
 import 'fetch_page_repository.dart';
 import 'fetch_part_model.dart';
 import 'fetch_part_repository.dart';
@@ -61,10 +63,7 @@ class FetchServiceEmail {
   }
 
   Future<void> index(AccountModel account, {Function()? onResult}) async {
-    if (!await IntgContext(_accountService, httpp: _httpp)
-        .isConnected(account)) {
-      throw '${account.email} - ${account.provider} not connected.';
-    }
+    _throwIfNotConnected(account);
     _log.fine(
         'email index ${account.email} on ${DateTime.now().toIso8601String()}');
     IntgContextEmail intgContextEmail = IntgContextEmail(_accountService, httpp: _httpp);
@@ -82,97 +81,27 @@ class FetchServiceEmail {
   }
 
   Future<void> process(AccountModel account) async {
-    Completer<void> completer = Completer();
     _log.fine(
-        'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
-    _process(account,
-        onProcessed: (List<EmailMsgModel> list) {
-          _decisionStrategySpam.addSpamCards(account, list);
-          _graphStrategyEmail.write(list);
-        },
-        onFinish: () => completer.complete())
-        .onError((error, stackTrace) => completer.completeError(
-        error ??
-            AsyncError('fetch_service_email process failed', stackTrace),
-        stackTrace));
-    return completer.future;
-  }
-
-  Future<void> _process(AccountModel account,
-      {Function(List<EmailMsgModel>)? onProcessed,
-      Function()? onFinish}) async {
+        'Process emails for ${account.email} on ${DateTime.now()
+            .toIso8601String()}');
     if (!await IntgContext(_accountService, httpp: _httpp)
         .isConnected(account)) {
       throw 'ApiOauthAccount ${account.provider} not connected.';
     }
-
     List<FetchPartModel<EmailMsgModel>> parts =
-        await _partRepository.getByAccountAndApi<EmailMsgModel>(
-            account.accountId!,
-            _apiFromProvider(account.provider)!,
+    await _partRepository.getByAccountAndApi<EmailMsgModel>(
+        account.accountId!,
+        _apiFromProvider(account.provider)!,
             (json) => EmailMsgModel.fromMap(json),
-            max: 100);
+        max: 100);
     if (parts.isNotEmpty) {
-      _log.fine('Got  ${parts.length} parts');
-      List<String> ids = parts
-          .where((part) => part.obj?.extMessageId != null)
-          .map((part) => part.obj!.extMessageId!)
-          .toList();
-      List<EmailMsgModel> fetched = List.empty(growable: true);
-      List<EmailMsgModel> save = List.empty(growable: true);
-      await IntgContextEmail(_accountService, httpp: _httpp).getMessages(
-          account: account,
-          messageIds: ids,
-          onResult: (message) {
-            if (message.toEmail == account.email! &&
-                message.sender?.unsubscribeMailTo != null) save.add(message);
-            fetched.add(message);
-          },
-          onFinish: () async {
-            _log.fine('Fetched ${fetched.length} messages');
-            Map<String, EmailSenderModel> senders = {};
-            save
-                .where((msg) => msg.sender != null && msg.sender?.email != null)
-                .forEach((msg) => senders[msg.sender!.email!] = msg.sender!);
-            senders.forEach((email, sender) {
-              List<DateTime?> dates = save.map((msg) {
-                if (msg.sender?.email == email) return msg.receivedDate;
-              }).toList();
-              DateTime? since = dates.reduce((min, date) =>
-                  min != null && date != null && date.isBefore(min)
-                      ? date
-                      : min);
-              sender.emailSince = since;
-              senders[sender.email!] = sender;
-            });
-            _log.fine('Saving ${senders.length} senders');
-            await _emailService.upsertSenders(List.of(senders.values));
-
-            _log.fine('Saving ${save.length} messages');
-            await _emailService.upsertMessages(save);
-
-            Set<String> domains = {};
-            for (var sender in senders.values) {
-              if (sender.company?.domain != null) {
-                domains.add(sender.company!.domain!);
-              }
-            }
-            _log.fine('Saving ${domains.length} companies');
-            for (String domain in domains) {
-              _companyService.upsert(domain);
-            }
-
-            int count = await _partRepository.deleteByExtIdsAndAccount(
-                fetched.map((msg) => msg.extMessageId!).toList(),
-                account.accountId!);
-            _log.fine('finished & deleted $count parts');
-            if (onProcessed != null) {
-              onProcessed(save);
-            }
-            _process(account, onProcessed: onProcessed);
-          });
-    } else {
-      if (onFinish != null) onFinish();
+      IntgContextEmail intgContextEmail = IntgContextEmail(_accountService, httpp: _httpp);
+      FetchMsgCmd fetchMsgCmd = FetchMsgCmd(
+          parts,
+          account,
+          intgContextEmail);
+      fetchMsgCmd.listeners.add(_commandListener);
+      _cmdMgrService.addCommand(fetchMsgCmd);
     }
   }
 
@@ -205,13 +134,12 @@ class FetchServiceEmail {
         _decisionStrategySpam.addSpamCards(notification.account, notification.save);
         _graphStrategyEmail.write(notification.save);
     }
-    if(notification is FetchMessagesCommandNotification){
-      _decisionStrategySpam.addSpamCards(notification.account, notification.save);
-      _graphStrategyEmail.write(notification.save);
+    if(notification is FetchMessagesCommandNotificationFinish){
+      _finishProcess(notification.save, notification.fetch, notification.account);
     }
   }
 
-  _finishProcess(List<EmailMsgModel> save, List<EmailMsgModel> fetched, account) async {
+  Future<void> _finishProcess(List<EmailMsgModel> save, List<EmailMsgModel> fetched, account) async {
     _log.fine('Fetched ${fetched.length} messages');
     Map<String, EmailSenderModel> senders = {};
     save.where((msg) => msg.sender != null && msg.sender?.email != null)
@@ -220,14 +148,15 @@ class FetchServiceEmail {
     await _saveMessages(save);
     await _saveCompanies(senders);
     await _deleteProcessedParts(fetched, account);
+    process(account);
   }
 
-  _saveMessages(save) async {
+  Future<void> _saveMessages(save) async {
     _log.fine('Saving ${save.length} messages');
     await _emailService.upsertMessages(save);
   }
 
-  _saveSenders(senders, save) async {
+  Future<void> _saveSenders(senders, save) async {
     senders.forEach((email, sender) {
       List<DateTime?> dates = save.map((msg) {
         if (msg.sender?.email == email) return msg.receivedDate;
@@ -243,7 +172,7 @@ class FetchServiceEmail {
     await _emailService.upsertSenders(List.of(senders.values));
   }
 
-  _saveCompanies(senders) async {
+  Future<void> _saveCompanies(senders) async {
     Set<String> domains = {};
     for (var sender in senders.values) {
       if (sender.company?.domain != null) {
@@ -256,10 +185,16 @@ class FetchServiceEmail {
     }
   }
 
-  _deleteProcessedParts(fetched, account) async {
+  Future<void> _deleteProcessedParts(fetched, account) async {
     int count = await _partRepository.deleteByExtIdsAndAccount(
         fetched.map((msg) => msg.extMessageId!).toList(),
         account.accountId!);
     _log.fine('finished & deleted $count parts');
+  }
+
+  void _throwIfNotConnected(AccountModel account) async {
+    if (!await IntgContext(_accountService, httpp: _httpp).isConnected(account)) {
+      throw '${account.email} - ${account.provider} not connected.';
+    }
   }
 }
