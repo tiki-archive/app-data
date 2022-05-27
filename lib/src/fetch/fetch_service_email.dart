@@ -25,6 +25,7 @@ import '../intg/intg_context_email.dart';
 import 'fetch_api_enum.dart';
 import 'fetch_inbox_command.dart';
 import 'fetch_inbox_command_notification.dart';
+import 'fetch_messages_command_notification.dart';
 import 'fetch_page_repository.dart';
 import 'fetch_part_model.dart';
 import 'fetch_part_repository.dart';
@@ -85,15 +86,15 @@ class FetchServiceEmail {
     _log.fine(
         'Process emails for ${account.email} on ${DateTime.now().toIso8601String()}');
     _process(account,
-            onProcessed: (List<EmailMsgModel> list) {
-              _decisionStrategySpam.addSpamCards(account, list);
-              _graphStrategyEmail.write(list);
-            },
-            onFinish: () => completer.complete())
+        onProcessed: (List<EmailMsgModel> list) {
+          _decisionStrategySpam.addSpamCards(account, list);
+          _graphStrategyEmail.write(list);
+        },
+        onFinish: () => completer.complete())
         .onError((error, stackTrace) => completer.completeError(
-            error ??
-                AsyncError('fetch_service_email process failed', stackTrace),
-            stackTrace));
+        error ??
+            AsyncError('fetch_service_email process failed', stackTrace),
+        stackTrace));
     return completer.future;
   }
 
@@ -200,5 +201,65 @@ class FetchServiceEmail {
           parts, (msg) => msg?.toMap());
       _log.fine('saved ${notification.messages.length} message indices');
     }
+    if(notification is FetchMessagesCommandNotification){
+        _decisionStrategySpam.addSpamCards(notification.account, notification.save);
+        _graphStrategyEmail.write(notification.save);
+    }
+    if(notification is FetchMessagesCommandNotification){
+      _decisionStrategySpam.addSpamCards(notification.account, notification.save);
+      _graphStrategyEmail.write(notification.save);
+    }
+  }
+
+  _finishProcess(List<EmailMsgModel> save, List<EmailMsgModel> fetched, account) async {
+    _log.fine('Fetched ${fetched.length} messages');
+    Map<String, EmailSenderModel> senders = {};
+    save.where((msg) => msg.sender != null && msg.sender?.email != null)
+        .forEach((msg) => senders[msg.sender!.email!] = msg.sender!);
+    await _saveSenders(senders, save);
+    await _saveMessages(save);
+    await _saveCompanies(senders);
+    await _deleteProcessedParts(fetched, account);
+  }
+
+  _saveMessages(save) async {
+    _log.fine('Saving ${save.length} messages');
+    await _emailService.upsertMessages(save);
+  }
+
+  _saveSenders(senders, save) async {
+    senders.forEach((email, sender) {
+      List<DateTime?> dates = save.map((msg) {
+        if (msg.sender?.email == email) return msg.receivedDate;
+      }).toList();
+      DateTime? since = dates.reduce((min, date) =>
+      min != null && date != null && date.isBefore(min)
+          ? date
+          : min);
+      sender.emailSince = since;
+      senders[sender.email!] = sender;
+    });
+    _log.fine('Saving ${senders.length} senders');
+    await _emailService.upsertSenders(List.of(senders.values));
+  }
+
+  _saveCompanies(senders) async {
+    Set<String> domains = {};
+    for (var sender in senders.values) {
+      if (sender.company?.domain != null) {
+        domains.add(sender.company!.domain!);
+      }
+    }
+    _log.fine('Saving ${domains.length} companies');
+    for (String domain in domains) {
+      _companyService.upsert(domain);
+    }
+  }
+
+  _deleteProcessedParts(fetched, account) async {
+    int count = await _partRepository.deleteByExtIdsAndAccount(
+        fetched.map((msg) => msg.extMessageId!).toList(),
+        account.accountId!);
+    _log.fine('finished & deleted $count parts');
   }
 }
