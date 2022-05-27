@@ -8,8 +8,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:uuid/uuid.dart';
 import '../../lib/src/cmd_mgr/cmd_mgr_service.dart';
-import '../../lib/src/fetch/fetch_inbox_command.dart';
-import '../../lib/src/fetch/fetch_inbox_command_notification.dart';
+import '../../lib/src/fetch/fetch_inbox_cmd.dart';
+import '../../lib/src/fetch/fetch_inbox_cmd_notification.dart';
 import '../../lib/src/account/account_model.dart';
 import '../../lib/src/account/account_service.dart';
 import '../../lib/src/account/account_model_provider.dart';
@@ -28,7 +28,7 @@ void main() {
       account.accountId = 123;
       account.provider = AccountModelProvider.google;
       account.accessToken = '';
-      FetchInboxCommand testCommand = FetchInboxCommand(
+      FetchInboxCmd testCommand = FetchInboxCmd(
           account,
           DateTime.now().subtract(Duration(days:10)),
           '',
@@ -51,7 +51,7 @@ void main() {
       account.accountId = 123;
       account.provider = AccountModelProvider.google;
       account.accessToken = '';
-      FetchInboxCommand testCommand = FetchInboxCommand(
+      FetchInboxCmd testCommand = FetchInboxCmd(
           account,
           DateTime.now().subtract(Duration(days:10)),
           '',
@@ -59,7 +59,7 @@ void main() {
       );
       CmdMgr.addCommand(testCommand);
       testCommand.listeners.add((notification) async {
-        if(notification is FetchInboxCommandNotification) {
+        if(notification is FetchInboxCmdNotification) {
           notified = true;
           msgCount += notification.messages.length;
         }

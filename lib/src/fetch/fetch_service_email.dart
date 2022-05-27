@@ -23,8 +23,9 @@ import '../graph/graph_strategy_email.dart';
 import '../intg/intg_context.dart';
 import '../intg/intg_context_email.dart';
 import 'fetch_api_enum.dart';
-import 'fetch_inbox_command.dart';
-import 'fetch_inbox_command_notification.dart';
+import 'fetch_inbox_cmd.dart';
+import 'fetch_inbox_cmd_notification.dart';
+import 'fetch_inbox_cmd_notification_finish.dart';
 import 'fetch_msg_cmd.dart';
 import 'fetch_msg_cmd_notification.dart';
 import 'fetch_msg_cmd_notification_finish.dart';
@@ -62,15 +63,15 @@ class FetchServiceEmail {
     return this;
   }
 
-  Future<void> index(AccountModel account, {Function()? onResult}) async {
+  Future<FetchInboxCmd> fetchInbox(AccountModel account, {Function()? onResult}) async {
     _throwIfNotConnected(account);
     _log.fine(
         'email index ${account.email} on ${DateTime.now().toIso8601String()}');
     IntgContextEmail intgContextEmail = IntgContextEmail(_accountService, httpp: _httpp);
-    String id = FetchInboxCommand.generateId(account);
+    String id = FetchInboxCmd.generateId(account);
     DateTime? since = _cmdMgrService.getLastRun(id);
     String? page = (await _pageRepository.getByAccountIdAndApi(account.accountId!,_apiFromProvider(account.provider)!))?.page;
-    FetchInboxCommand command = FetchInboxCommand(
+    FetchInboxCmd command = FetchInboxCmd(
         account,
         since,
         page,
@@ -78,22 +79,20 @@ class FetchServiceEmail {
     );
     command.listeners.add(_commandListener);
     _cmdMgrService.addCommand(command);
+    return command;
   }
 
-  Future<void> process(AccountModel account) async {
+  Future<FetchMsgCmd?> fetchMessages(AccountModel account) async {
+    _throwIfNotConnected(account);
     _log.fine(
         'Process emails for ${account.email} on ${DateTime.now()
             .toIso8601String()}');
-    if (!await IntgContext(_accountService, httpp: _httpp)
-        .isConnected(account)) {
-      throw 'ApiOauthAccount ${account.provider} not connected.';
-    }
     List<FetchPartModel<EmailMsgModel>> parts =
-    await _partRepository.getByAccountAndApi<EmailMsgModel>(
-        account.accountId!,
-        _apiFromProvider(account.provider)!,
-            (json) => EmailMsgModel.fromMap(json),
-        max: 100);
+      await _partRepository.getByAccountAndApi<EmailMsgModel>(
+          account.accountId!,
+          _apiFromProvider(account.provider)!,
+              (json) => EmailMsgModel.fromMap(json),
+          max: 100);
     if (parts.isNotEmpty) {
       IntgContextEmail intgContextEmail = IntgContextEmail(_accountService, httpp: _httpp);
       FetchMsgCmd fetchMsgCmd = FetchMsgCmd(
@@ -102,6 +101,9 @@ class FetchServiceEmail {
           intgContextEmail);
       fetchMsgCmd.listeners.add(_commandListener);
       _cmdMgrService.addCommand(fetchMsgCmd);
+      return fetchMsgCmd;
+    }else {
+      return null;
     }
   }
 
@@ -117,7 +119,7 @@ class FetchServiceEmail {
   }
 
   Future<void> _commandListener(CmdMgrCommandNotification notification) async {
-    if(notification is FetchInboxCommandNotification){
+    if(notification is FetchInboxCmdNotification){
       _log.fine('indexed ${notification.messages.length} messages');
       List<FetchPartModel<EmailMsgModel>> parts = notification.messages
           .map((message) => FetchPartModel(
@@ -130,11 +132,14 @@ class FetchServiceEmail {
           parts, (msg) => msg?.toMap());
       _log.fine('saved ${notification.messages.length} message indices');
     }
-    if(notification is FetchMessagesCommandNotification){
+    if(notification is FetchInboxCmdNotificationFinish){
+      fetchMessages(notification.account);
+    }
+    if(notification is FetchMsgCmdNotification){
         _decisionStrategySpam.addSpamCards(notification.account, notification.save);
         _graphStrategyEmail.write(notification.save);
     }
-    if(notification is FetchMessagesCommandNotificationFinish){
+    if(notification is FetchMsgCmdNotificationFinish){
       _finishProcess(notification.save, notification.fetch, notification.account);
     }
   }
@@ -148,7 +153,7 @@ class FetchServiceEmail {
     await _saveMessages(save);
     await _saveCompanies(senders);
     await _deleteProcessedParts(fetched, account);
-    process(account);
+    fetchMessages(account);
   }
 
   Future<void> _saveMessages(save) async {

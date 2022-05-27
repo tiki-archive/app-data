@@ -6,16 +6,17 @@ import '../account/account_model.dart';
 import '../cmd_mgr/cmd_mgr_command.dart';
 import '../cmd_mgr/cmd_mgr_notification_finish.dart';
 import '../intg/intg_context_email.dart';
-import 'fetch_inbox_command_notification.dart';
+import 'fetch_inbox_cmd_notification.dart';
+import 'fetch_inbox_cmd_notification_finish.dart';
 
-class FetchInboxCommand extends CmdMgrCommand{
+class FetchInboxCmd extends CmdMgrCommand{
   final Logger _log = Logger('FetchInboxCommand');
   final AccountModel _account;
   final DateTime? _since;
   final String? _page;
   final IntgContextEmail _intgContextEmail;
 
-  FetchInboxCommand(this._account, this._since, this._page, this._intgContextEmail);
+  FetchInboxCmd(this._account, this._since, this._page, this._intgContextEmail);
 
   Future<void> index() async {
     _log.fine(
@@ -24,7 +25,7 @@ class FetchInboxCommand extends CmdMgrCommand{
           account: _account,
           since: _since,
           onResult: (messages) async {
-            notify(FetchInboxCommandNotification(_account, messages));
+            notify(FetchInboxCmdNotification(_account, messages));
             _log.fine('indexed ${messages.length} messages');
           },
           onFinish: () async {
@@ -58,7 +59,7 @@ class FetchInboxCommand extends CmdMgrCommand{
 
   @override
   Future<void> onStop() async {
-    notify(CmdMgrNotificationFinish(id));
+    notify(FetchInboxCmdNotificationFinish(_account));
   }
 
   static String generateId(AccountModel account) =>

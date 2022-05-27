@@ -8,16 +8,19 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
+import '../cmd_mgr/cmd_mgr_notification_finish.dart';
 import '../cmd_mgr/cmd_mgr_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
 import '../graph/graph_strategy_email.dart';
+import 'fetch_inbox_cmd.dart';
+import 'fetch_msg_cmd.dart';
 import 'fetch_service_email.dart';
 
 class FetchService {
-  final Map<String, Future<dynamic>> _ongoing = Map();
-
+  final List<String> _ongoing = [];
+  late final CmdMgrService _cmdMgrService;
   late final FetchServiceEmail _email;
 
   Future<FetchService> init(
@@ -29,39 +32,48 @@ class FetchService {
       GraphStrategyEmail graphStrategyEmail,
       CmdMgrService cmdMgrService,
       {Httpp? httpp}) async {
+    _cmdMgrService = cmdMgrService;
     _email = await FetchServiceEmail(
         emailService,
         companyService,
         strategySpam,
         accountService,
         graphStrategyEmail,
-        cmdMgrService,
+        _cmdMgrService,
         httpp: httpp).init(database);
     return this;
   }
 
   void start(AccountModel account) {
-    _emailIndex(account);
-    _emailProcess(account);
+    _fetchInbox(account);
+    _fetchMessages(account);
   }
 
   void stop() {
-    List<String> keys = List.from(_ongoing.keys);
-    keys.forEach((key) => _ongoing.remove(key));
+    _ongoing.forEach((cmdId) {
+      _cmdMgrService.stopCommand(cmdId);
+    });
   }
 
-  void _emailIndex(AccountModel account) {
-    String key = 'email.index';
-    _ongoing.putIfAbsent(
-        key,
-        () => _email
-            .index(account, onResult: () => _emailProcess(account))
-            .then((_) => _ongoing.remove(key)));
+  void _fetchInbox(AccountModel account) async {
+    FetchInboxCmd cmd = await _email.fetchInbox(account);
+    cmd.listeners.add((notification) async {
+      if(notification is CmdMgrNotificationFinish) {
+        _fetchMessages(account);
+        _ongoing.remove(cmd.id);
+      }
+    });
+    _ongoing.add(cmd.id);
   }
 
-  void _emailProcess(AccountModel account) {
-    String key = 'email.process';
-    _ongoing.putIfAbsent(
-        key, () => _email.process(account).then((_) => _ongoing.remove(key)));
-  }
+  void _fetchMessages(AccountModel account) async {
+    FetchMsgCmd? cmd = await _email.fetchMessages(account);
+    if(cmd != null){
+      cmd.listeners.add((notification) async {
+        if(notification is CmdMgrNotificationFinish) {
+          _ongoing.remove(cmd.id);
+        }
+      });
+      _ongoing.add(cmd.id);
+    }}
 }
