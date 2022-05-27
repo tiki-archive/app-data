@@ -4,11 +4,11 @@
  */
 
 import 'package:httpp/httpp.dart';
-import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../account/account_model.dart';
 import '../account/account_service.dart';
+import '../cmd_mgr/cmd_mgr_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
@@ -16,7 +16,6 @@ import '../graph/graph_strategy_email.dart';
 import 'fetch_service_email.dart';
 
 class FetchService {
-  final _log = Logger('FetchService');
   final Map<String, Future<dynamic>> _ongoing = Map();
 
   late final FetchServiceEmail _email;
@@ -28,11 +27,16 @@ class FetchService {
       DecisionStrategySpam strategySpam,
       AccountService accountService,
       GraphStrategyEmail graphStrategyEmail,
+      CmdMgrService cmdMgrService,
       {Httpp? httpp}) async {
-    _email = await FetchServiceEmail(emailService, companyService, strategySpam,
-            accountService, graphStrategyEmail,
-            httpp: httpp)
-        .init(database);
+    _email = await FetchServiceEmail(
+        emailService,
+        companyService,
+        strategySpam,
+        accountService,
+        graphStrategyEmail,
+        cmdMgrService,
+        httpp: httpp).init(database);
     return this;
   }
 

@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 
 import '../account/account_model.dart';
-import '../account/account_service.dart';
 import '../cmd_mgr/cmd_mgr_command.dart';
 import '../cmd_mgr/cmd_mgr_notification_finish.dart';
 import '../intg/intg_context_email.dart';
@@ -36,7 +34,7 @@ class FetchInboxCommand extends CmdMgrCommand{
   }
 
   @override
-  String get id => 'FetchInboxCommand_${_account.accountId!}_${_account.provider!}';
+  String get id => generateId(_account);
 
   @override
   Duration get minRunFreq => Duration(days: 1);
@@ -60,8 +58,9 @@ class FetchInboxCommand extends CmdMgrCommand{
 
   @override
   Future<void> onStop() async {
-    // record where stop
-    // stop fetching
+    notify(CmdMgrNotificationFinish(id));
   }
 
+  static String generateId(AccountModel account) =>
+      'FetchInboxCommand_${account.accountId!}_${account.provider!}';
 }

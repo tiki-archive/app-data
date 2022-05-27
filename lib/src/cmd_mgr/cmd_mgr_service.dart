@@ -17,8 +17,9 @@ class CmdMgrService{
       _repositoryLastRun = CmdMgrLastRunRepository(database){
   }
 
-  Future<void> init() async {
+  Future<CmdMgrService> init() async {
     _model.lastRun = await _repositoryLastRun.getAllLastRun();
+    return this;
   }
 
   bool addCommand(CmdMgrCommand command){
@@ -65,7 +66,7 @@ class CmdMgrService{
 
   List<CmdMgrCommand> getAll() => _model.commandQueue.toList();
 
-  Future<DateTime?> getLastRun(String id) async => await _repositoryLastRun.getLastRun(id);
+  DateTime? getLastRun(String id) => _model.lastRun[id];
 
   void _runCommands() {
     int limit = _model.activeLimit - _model.activeCommands;

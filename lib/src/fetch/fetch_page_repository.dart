@@ -6,14 +6,14 @@
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'fetch_api_enum.dart';
-import 'fetch_last_model.dart';
+import 'fetch_page_model.dart';
 
-class FetchLastRepository {
+class FetchPageRepository {
   static const String _table = 'fetch_inbox_page';
 
   final Database _database;
 
-  FetchLastRepository(this._database);
+  FetchPageRepository(this._database);
 
   Future<void> createTable() =>
       _database.execute('CREATE TABLE IF NOT EXISTS $_table('
@@ -23,34 +23,34 @@ class FetchLastRepository {
           'page STRING NOT NULL, '
           'UNIQUE (account_id, api_enum));');
 
-  Future<FetchLastModel> upsert(FetchLastModel data) async {
+  Future<FetchPageModel> upsert(FetchPageModel data) async {
     int id = await _database.rawInsert(
         'INSERT INTO $_table'
-            '(account_id, api_enum, fetched_epoch) '
-            'VALUES(?1, ?2, strftime(\'%s\', \'now\') * 1000) '
+            '(account_id, api_enum, page) '
+            'VALUES(?1, ?2, ?3) '
             'ON CONFLICT(account_id, api_enum) DO UPDATE SET '
-            'fetched_epoch=strftime(\'%s\', \'now\') * 1000 '
+            'page=?3 '
             'WHERE account_id = ?1 AND api_enum = ?2;',
-        [data.account!.accountId, data.api?.value]);
+        [data.account!.accountId, data.api?.value, data.page]);
     data.fetchId = id;
     return data;
   }
 
-  Future<FetchLastModel?> getByAccountIdAndApi(
+  Future<FetchPageModel?> getByAccountIdAndApi(
       int accountId, FetchApiEnum api) async {
     final List<Map<String, Object?>> rows = await _select(
         where: "last.account_id = ?1 AND api_enum = ?2",
         whereArgs: [accountId, api.value]);
     if (rows.isEmpty) return null;
-    return FetchLastModel.fromMap(rows[0]);
+    return FetchPageModel.fromMap(rows[0]);
   }
 
   Future<List<Map<String, Object?>>> _select(
       {String? where, List<Object?>? whereArgs, int? limit}) async {
     List<Map<String, Object?>> rows = await _database.rawQuery(
-        'SELECT last.fetch_id AS \'last@fetch_id\', '
-            'last.api_enum AS \'last@api_enum\', '
-            'last.fetched_epoch AS \'last@fetched_epoch\', '
+        'SELECT last.fetch_id AS \'fetch_inbox_page@fetch_id\', '
+            'last.api_enum AS \'fetch_inbox_page@api_enum\', '
+            'last.page AS \'fetch_inbox_page@page\', '
             'account.account_id AS \'account@account_id\', '
             'account.username AS \'account@username\', '
             'account.email AS \'account@email\', '
@@ -75,8 +75,8 @@ class FetchLastRepository {
       Map<String, Object?> lastMap = {};
       Map<String, Object?> accountMap = {};
       for (var element in row.entries) {
-        if (element.key.contains('last@')) {
-          lastMap[element.key.replaceFirst('last@', '')] = element.value;
+        if (element.key.contains('fetch_inbox_page@')) {
+          lastMap[element.key.replaceFirst('fetch_inbox_page@', '')] = element.value;
         } else if (element.key.contains('account@')) {
           accountMap[element.key.replaceFirst('account@', '')] = element.value;
         }
@@ -85,4 +85,5 @@ class FetchLastRepository {
       return lastMap;
     }).toList();
   }
+
 }

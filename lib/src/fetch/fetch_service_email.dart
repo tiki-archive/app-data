@@ -12,6 +12,8 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
+import '../cmd_mgr/cmd_mgr_command_notification.dart';
+import '../cmd_mgr/cmd_mgr_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
@@ -21,21 +23,23 @@ import '../graph/graph_strategy_email.dart';
 import '../intg/intg_context.dart';
 import '../intg/intg_context_email.dart';
 import 'fetch_api_enum.dart';
-import 'fetch_last_model.dart';
-import 'fetch_last_repository.dart';
+import 'fetch_inbox_command.dart';
+import 'fetch_inbox_command_notification.dart';
+import 'fetch_page_repository.dart';
 import 'fetch_part_model.dart';
 import 'fetch_part_repository.dart';
 
 class FetchServiceEmail {
   final _log = Logger('FetchServiceEmail');
   late final FetchPartRepository _partRepository;
-  late final FetchLastRepository _lastRepository;
+  late final FetchPageRepository _pageRepository;
   final Httpp _httpp;
   final EmailService _emailService;
   final CompanyService _companyService;
   final AccountService _accountService;
   final DecisionStrategySpam _decisionStrategySpam;
   final GraphStrategyEmail _graphStrategyEmail;
+  final CmdMgrService _cmdMgrService;
 
   FetchServiceEmail(
       this._emailService,
@@ -43,13 +47,14 @@ class FetchServiceEmail {
       this._decisionStrategySpam,
       this._accountService,
       this._graphStrategyEmail,
+      this._cmdMgrService,
       {Httpp? httpp})
       : _httpp = httpp ?? Httpp();
 
   Future<FetchServiceEmail> init(Database database) async {
-    _lastRepository = FetchLastRepository(database);
+    _pageRepository = FetchPageRepository(database);
     _partRepository = FetchPartRepository(database);
-    await _lastRepository.createTable();
+    await _pageRepository.createTable();
     await _partRepository.createTable();
     return this;
   }
@@ -61,43 +66,18 @@ class FetchServiceEmail {
     }
     _log.fine(
         'email index ${account.email} on ${DateTime.now().toIso8601String()}');
-    Completer<void> completer = Completer();
-    FetchLastModel? last = await _lastRepository.getByAccountIdAndApi(
-        account.accountId!, _apiFromProvider(account.provider)!);
-    DateTime? since = last?.fetched;
-
-    if (since == null ||
-        DateTime.now().subtract(const Duration(days: 1)).isAfter(since)) {
-      DateTime fetchStart = DateTime.now();
-      await IntgContextEmail(_accountService, httpp: _httpp).getInbox(
-          account: account,
-          since: since,
-          onResult: (messages) async {
-            _log.fine('indexed ${messages.length} messages');
-            List<FetchPartModel<EmailMsgModel>> parts = messages
-                .map((message) => FetchPartModel(
-                    extId: message.extMessageId,
-                    account: account,
-                    api: _apiFromProvider(account.provider),
-                    obj: message))
-                .toList();
-            await _partRepository.upsert<EmailMsgModel>(
-                parts, (msg) => msg?.toMap());
-            _log.fine('saved ${messages.length} message indices');
-            if (onResult != null) onResult();
-          },
-          onFinish: () async {
-            await _lastRepository.upsert(FetchLastModel(
-                account: account,
-                api: _apiFromProvider(account.provider),
-                fetched: fetchStart));
-            _log.fine('finished email index for ${account.email}.');
-            completer.complete();
-          });
-    } else
-      completer.complete();
-
-    return completer.future;
+    IntgContextEmail intgContextEmail = IntgContextEmail(_accountService, httpp: _httpp);
+    String id = FetchInboxCommand.generateId(account);
+    DateTime? since = _cmdMgrService.getLastRun(id);
+    String? page = (await _pageRepository.getByAccountIdAndApi(account.accountId!,_apiFromProvider(account.provider)!))?.page;
+    FetchInboxCommand command = FetchInboxCommand(
+        account,
+        since,
+        page,
+        intgContextEmail
+    );
+    command.listeners.add(_commandListener);
+    _cmdMgrService.addCommand(command);
   }
 
   Future<void> process(AccountModel account) async {
@@ -203,6 +183,22 @@ class FetchServiceEmail {
         return FetchApiEnum.outlook;
       default:
         return null;
+    }
+  }
+
+  Future<void> _commandListener(CmdMgrCommandNotification notification) async {
+    if(notification is FetchInboxCommandNotification){
+      _log.fine('indexed ${notification.messages.length} messages');
+      List<FetchPartModel<EmailMsgModel>> parts = notification.messages
+          .map((message) => FetchPartModel(
+          extId: message.extMessageId,
+          account: notification.account,
+          api: _apiFromProvider(notification.account.provider),
+          obj: message))
+          .toList();
+      await _partRepository.upsert<EmailMsgModel>(
+          parts, (msg) => msg?.toMap());
+      _log.fine('saved ${notification.messages.length} message indices');
     }
   }
 }
