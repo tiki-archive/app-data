@@ -1,8 +1,5 @@
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 
-import 'cmd_mgr_command.dart';
-import 'cmd_mgr_model.dart';
-
 class CmdMgrLastRunRepository{
   static const String _table = 'cmd_mgr_last_run';
 

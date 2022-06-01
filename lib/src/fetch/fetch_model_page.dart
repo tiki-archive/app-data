@@ -6,15 +6,15 @@
 import '../account/account_model.dart';
 import 'fetch_api_enum.dart';
 
-class FetchPageModel {
+class FetchModelPage {
   int? fetchId;
   AccountModel? account;
   FetchApiEnum? api;
   String? page;
 
-  FetchPageModel({this.fetchId, this.account, this.api, this.page});
+  FetchModelPage({this.fetchId, this.account, this.api, this.page});
 
-  FetchPageModel.fromMap(Map<String, dynamic>? map) {
+  FetchModelPage.fromMap(Map<String, dynamic>? map) {
     if (map != null) {
       fetchId = map['fetch_id'];
       if (map['account'] != null) {

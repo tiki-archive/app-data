@@ -3,65 +3,82 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:httpp/httpp.dart';
+import 'dart:async';
+
+import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../account/account_model.dart';
-import '../account/account_service.dart';
-import '../cmd_mgr/cmd_mgr_service.dart';
-import '../company/company_service.dart';
-import '../decision/decision_strategy_spam.dart';
-import '../email/email_service.dart';
-import '../graph/graph_strategy_email.dart';
-import 'fetch_service_email.dart';
+import '../account/account_model_provider.dart';
+import '../email/msg/email_msg_model.dart';
+import 'fetch_api_enum.dart';
+import 'fetch_model_page.dart';
+import 'fetch_model_part.dart';
+import 'fetch_repository_page.dart';
+import 'fetch_repository_part.dart';
 
 class FetchService {
-  final Map<String, Future<dynamic>> _ongoing = Map();
+  final _log = Logger('FetchService');
+  late final FetchRepositoryPart _partRepository;
+  late final FetchRepositoryPage _pageRepository;
 
-  late final FetchServiceEmail _email;
-
-  Future<FetchService> init(
-      EmailService emailService,
-      CompanyService companyService,
-      Database database,
-      DecisionStrategySpam strategySpam,
-      AccountService accountService,
-      GraphStrategyEmail graphStrategyEmail,
-      CmdMgrService cmdMgrService,
-      {Httpp? httpp}) async {
-    _email = await FetchServiceEmail(
-        emailService,
-        companyService,
-        strategySpam,
-        accountService,
-        graphStrategyEmail,
-        cmdMgrService,
-        httpp: httpp).init(database);
+  Future<FetchService> init(Database database) async {
+    _pageRepository = FetchRepositoryPage(database);
+    _partRepository = FetchRepositoryPart(database);
+    await _pageRepository.createTable();
+    await _partRepository.createTable();
     return this;
   }
 
-  void start(AccountModel account) {
-    _emailIndex(account);
-    _emailProcess(account);
+
+  Future<List<FetchModelPart<EmailMsgModel>>> getParts(
+      AccountModel account
+      ) async => await _partRepository.getByAccountAndApi<EmailMsgModel>(
+        account.accountId!,
+        apiFromProvider(account.provider)!,
+        (json) => EmailMsgModel.fromMap(json),
+        max: 100);
+
+  Future<int> countParts(AccountModel account) async =>
+      await _partRepository.countByAccountAndApi(
+          account.accountId!,
+          apiFromProvider(account.provider)!);
+
+  Future<void> saveParts(
+      List<FetchModelPart<EmailMsgModel>> msgs, AccountModel account
+      ) async =>
+      await _partRepository.upsert<EmailMsgModel>(msgs, (msg) => msg?.toMap());
+
+  Future<void> deleteParts(
+      List<EmailMsgModel> msgs, AccountModel account
+      ) async =>
+      await _partRepository.deleteByExtIdsAndAccount(
+        msgs.map((msg) => msg.extMessageId!).toList(),
+        account.accountId!).then((count) =>
+          _log.fine('deleted $count parts'));
+
+  static FetchApiEnum? apiFromProvider(AccountModelProvider? provider) {
+    switch (provider) {
+      case AccountModelProvider.google:
+        return FetchApiEnum.gmail;
+      case AccountModelProvider.microsoft:
+        return FetchApiEnum.outlook;
+      default:
+        return null;
+    }
   }
 
-  void stop() {
-    List<String> keys = List.from(_ongoing.keys);
-    keys.forEach((key) => _ongoing.remove(key));
-  }
+  savePage(String page, AccountModel account) async =>
+      await _pageRepository.upsert(
+        FetchModelPage(
+            account: account,
+            api: apiFromProvider(account.provider!),
+            page: page
+        )
+      );
 
-  void _emailIndex(AccountModel account) {
-    String key = 'email.index';
-    _ongoing.putIfAbsent(
-        key,
-        () => _email
-            .index(account, onResult: () => _emailProcess(account))
-            .then((_) => _ongoing.remove(key)));
-  }
+  Future<String?> getPage(AccountModel account) async =>
+      (await _pageRepository.getByAccountIdAndApi(
+          account.accountId!, apiFromProvider(account.provider)!))?.page;
 
-  void _emailProcess(AccountModel account) {
-    String key = 'email.process';
-    _ongoing.putIfAbsent(
-        key, () => _email.process(account).then((_) => _ongoing.remove(key)));
-  }
 }
