@@ -6,14 +6,14 @@
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'fetch_api_enum.dart';
-import 'fetch_page_model.dart';
+import 'fetch_model_page.dart';
 
-class FetchPageRepository {
+class FetchRepositoryPage {
   static const String _table = 'fetch_inbox_page';
 
   final Database _database;
 
-  FetchPageRepository(this._database);
+  FetchRepositoryPage(this._database);
 
   Future<void> createTable() =>
       _database.execute('CREATE TABLE IF NOT EXISTS $_table('
@@ -23,7 +23,7 @@ class FetchPageRepository {
           'page STRING NOT NULL, '
           'UNIQUE (account_id, api_enum));');
 
-  Future<FetchPageModel> upsert(FetchPageModel data) async {
+  Future<FetchModelPage> upsert(FetchModelPage data) async {
     int id = await _database.rawInsert(
         'INSERT INTO $_table'
             '(account_id, api_enum, page) '
@@ -36,13 +36,13 @@ class FetchPageRepository {
     return data;
   }
 
-  Future<FetchPageModel?> getByAccountIdAndApi(
+  Future<FetchModelPage?> getByAccountIdAndApi(
       int accountId, FetchApiEnum api) async {
     final List<Map<String, Object?>> rows = await _select(
         where: "last.account_id = ?1 AND api_enum = ?2",
         whereArgs: [accountId, api.value]);
     if (rows.isEmpty) return null;
-    return FetchPageModel.fromMap(rows[0]);
+    return FetchModelPage.fromMap(rows[0]);
   }
 
   Future<List<Map<String, Object?>>> _select(

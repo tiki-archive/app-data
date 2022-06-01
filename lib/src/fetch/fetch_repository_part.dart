@@ -8,14 +8,14 @@ import 'dart:convert';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'fetch_api_enum.dart';
-import 'fetch_part_model.dart';
+import 'fetch_model_part.dart';
 
-class FetchPartRepository {
+class FetchRepositoryPart {
   static const String _table = 'data_fetch_part';
 
   final Database _database;
 
-  FetchPartRepository(this._database);
+  FetchRepositoryPart(this._database);
 
   Future<void> createTable() =>
       _database.execute('CREATE TABLE IF NOT EXISTS $_table('
@@ -28,7 +28,7 @@ class FetchPartRepository {
           'modified_epoch INTEGER NOT NULL, '
           'UNIQUE (ext_id, account_id));');
 
-  Future<int> upsert<T>(List<FetchPartModel<T>> parts,
+  Future<int> upsert<T>(List<FetchModelPart<T>> parts,
       Map<String, dynamic>? Function(T?) toMap) async {
     if (parts.isNotEmpty) {
       Batch batch = _database.batch();
@@ -57,7 +57,7 @@ class FetchPartRepository {
     }
   }
 
-  Future<List<FetchPartModel<T>>> getByAccountAndApi<T>(int accountId,
+  Future<List<FetchModelPart<T>>> getByAccountAndApi<T>(int accountId,
       FetchApiEnum api, T Function(Map<String, dynamic>? map) fromMap,
       {int? max}) async {
     final List<Map<String, Object?>> rows = await _select(
@@ -66,7 +66,7 @@ class FetchPartRepository {
         limit: max);
     if (rows.isEmpty) return List.empty();
     return rows
-        .map((e) => FetchPartModel.fromMap(e, (map) => fromMap(map)))
+        .map((e) => FetchModelPart.fromMap(e, (map) => fromMap(map)))
         .toList();
   }
 
