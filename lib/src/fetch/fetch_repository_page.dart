@@ -39,7 +39,7 @@ class FetchRepositoryPage {
   Future<FetchModelPage?> getByAccountIdAndApi(
       int accountId, FetchApiEnum api) async {
     final List<Map<String, Object?>> rows = await _select(
-        where: "last.account_id = ?1 AND api_enum = ?2",
+        where: "page.account_id = ?1 AND api_enum = ?2",
         whereArgs: [accountId, api.value]);
     if (rows.isEmpty) return null;
     return FetchModelPage.fromMap(rows[0]);
@@ -48,9 +48,9 @@ class FetchRepositoryPage {
   Future<List<Map<String, Object?>>> _select(
       {String? where, List<Object?>? whereArgs, int? limit}) async {
     List<Map<String, Object?>> rows = await _database.rawQuery(
-        'SELECT last.fetch_id AS \'fetch_inbox_page@fetch_id\', '
-            'last.api_enum AS \'fetch_inbox_page@api_enum\', '
-            'last.page AS \'fetch_inbox_page@page\', '
+        'SELECT page.fetch_id AS \'fetch_inbox_page@fetch_id\', '
+            'page.api_enum AS \'fetch_inbox_page@api_enum\', '
+            'page.page AS \'fetch_inbox_page@page\', '
             'account.account_id AS \'account@account_id\', '
             'account.username AS \'account@username\', '
             'account.email AS \'account@email\', '
@@ -64,25 +64,25 @@ class FetchRepositoryPage {
             'account.scopes AS \'account@scopes\', '
             'account.created_epoch AS \'account@created_epoch\', '
             'account.modified_epoch AS \'account@modified_epoch\' '
-            'FROM $_table AS last '
+            'FROM $_table AS page '
             'LEFT JOIN auth_service_account AS account '
-            'ON last.account_id = account.account_id ' +
+            'ON page.account_id = account.account_id ' +
             (where != null ? 'WHERE ' + where : '') +
             (limit != null ? 'LIMIT ' + limit.toString() : ''),
         whereArgs);
     if (rows.isEmpty) return List.empty();
     return rows.map((row) {
-      Map<String, Object?> lastMap = {};
+      Map<String, Object?> pageMap = {};
       Map<String, Object?> accountMap = {};
       for (var element in row.entries) {
         if (element.key.contains('fetch_inbox_page@')) {
-          lastMap[element.key.replaceFirst('fetch_inbox_page@', '')] = element.value;
+          pageMap[element.key.replaceFirst('fetch_inbox_page@', '')] = element.value;
         } else if (element.key.contains('account@')) {
           accountMap[element.key.replaceFirst('account@', '')] = element.value;
         }
       }
-      lastMap['account'] = accountMap;
-      return lastMap;
+      pageMap['account'] = accountMap;
+      return pageMap;
     }).toList();
   }
 

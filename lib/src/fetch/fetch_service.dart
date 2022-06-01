@@ -12,6 +12,7 @@ import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../email/msg/email_msg_model.dart';
 import 'fetch_api_enum.dart';
+import 'fetch_model_page.dart';
 import 'fetch_model_part.dart';
 import 'fetch_repository_page.dart';
 import 'fetch_repository_part.dart';
@@ -38,6 +39,11 @@ class FetchService {
         (json) => EmailMsgModel.fromMap(json),
         max: 100);
 
+  Future<int> countParts(AccountModel account) async =>
+      await _partRepository.countByAccountAndApi(
+          account.accountId!,
+          apiFromProvider(account.provider)!);
+
   Future<void> saveParts(
       List<FetchModelPart<EmailMsgModel>> msgs, AccountModel account
       ) async =>
@@ -61,5 +67,18 @@ class FetchService {
         return null;
     }
   }
+
+  savePage(String page, AccountModel account) async =>
+      await _pageRepository.upsert(
+        FetchModelPage(
+            account: account,
+            api: apiFromProvider(account.provider!),
+            page: page
+        )
+      );
+
+  Future<String?> getPage(AccountModel account) async =>
+      (await _pageRepository.getByAccountIdAndApi(
+          account.accountId!, apiFromProvider(account.provider)!))?.page;
 
 }

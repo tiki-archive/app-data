@@ -6,6 +6,7 @@ class CmdFetchMsgNotification extends CmdMgrCmdNotif{
   final AccountModel account;
   final List<EmailMsgModel> fetch;
   final List<EmailMsgModel> save;
+  final int total;
 
-  CmdFetchMsgNotification(this.account, this.save, this.fetch);
+  CmdFetchMsgNotification(this.account, this.save, this.fetch, this.total);
 }

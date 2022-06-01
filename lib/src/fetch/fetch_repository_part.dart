@@ -35,13 +35,13 @@ class FetchRepositoryPart {
       for (var part in parts) {
         batch.rawInsert(
           'INSERT INTO $_table'
-          '(ext_id, account_id, api_enum, obj_json, created_epoch, modified_epoch) '
-          'VALUES(?1, ?2, ?3, ?4, strftime(\'%s\', \'now\') * 1000, strftime(\'%s\', \'now\') * 1000) '
-          'ON CONFLICT(ext_id, account_id) DO UPDATE SET '
-          'api_enum=IFNULL(?3, api_enum), '
-          'obj_json=IFNULL(?4, obj_json), '
-          'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
-          'WHERE ext_id = ?1 AND account_id = ?2;',
+              '(ext_id, account_id, api_enum, obj_json, created_epoch, modified_epoch) '
+              'VALUES(?1, ?2, ?3, ?4, strftime(\'%s\', \'now\') * 1000, strftime(\'%s\', \'now\') * 1000) '
+              'ON CONFLICT(ext_id, account_id) DO UPDATE SET '
+              'api_enum=IFNULL(?3, api_enum), '
+              'obj_json=IFNULL(?4, obj_json), '
+              'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
+              'WHERE ext_id = ?1 AND account_id = ?2;',
           [
             part.extId,
             part.account!.accountId,
@@ -70,8 +70,8 @@ class FetchRepositoryPart {
         .toList();
   }
 
-  Future<int> deleteByExtIdsAndAccount(
-      List<String> extIds, int accountId) async {
+  Future<int> deleteByExtIdsAndAccount(List<String> extIds,
+      int accountId) async {
     int count = await _database.delete(_table,
         where: 'account_id = ? AND ext_id IN (' +
             extIds.map((id) => "'" + id + "'").join(",") +
@@ -86,27 +86,27 @@ class FetchRepositoryPart {
       {String? where, List<Object?>? whereArgs, int? limit}) async {
     List<Map<String, Object?>> rows = await _database.rawQuery(
         'SELECT part.part_id AS \'part@part_id\', '
-                'part.ext_id AS \'part@ext_id\', '
-                'part.api_enum AS \'part@api_enum\', '
-                'part.obj_json AS \'part@obj_json\', '
-                'part.created_epoch AS \'part@created_epoch\', '
-                'part.modified_epoch AS \'part@modified_epoch\', '
-                'account.account_id AS \'account@account_id\', '
-                'account.username AS \'account@username\', '
-                'account.email AS \'account@email\', '
-                'account.display_name AS \'account@display_name\', '
-                'account.provider AS \'account@provider\', '
-                'account.access_token AS \'account@access_token\', '
-                'account.access_token_expiration AS \'account@access_token_expiration\', '
-                'account.refresh_token AS \'account@refresh_token\', '
-                'account.refresh_token_expiration AS \'account@refresh_token_expiration\', '
-                'account.should_reconnect AS \'account@should_reconnect\', '
-                'account.scopes AS \'account@scopes\', '
-                'account.created_epoch AS \'account@created_epoch\', '
-                'account.modified_epoch AS \'account@modified_epoch\' '
-                'FROM $_table AS part '
-                'LEFT JOIN auth_service_account AS account '
-                'ON part.account_id = account.account_id ' +
+            'part.ext_id AS \'part@ext_id\', '
+            'part.api_enum AS \'part@api_enum\', '
+            'part.obj_json AS \'part@obj_json\', '
+            'part.created_epoch AS \'part@created_epoch\', '
+            'part.modified_epoch AS \'part@modified_epoch\', '
+            'account.account_id AS \'account@account_id\', '
+            'account.username AS \'account@username\', '
+            'account.email AS \'account@email\', '
+            'account.display_name AS \'account@display_name\', '
+            'account.provider AS \'account@provider\', '
+            'account.access_token AS \'account@access_token\', '
+            'account.access_token_expiration AS \'account@access_token_expiration\', '
+            'account.refresh_token AS \'account@refresh_token\', '
+            'account.refresh_token_expiration AS \'account@refresh_token_expiration\', '
+            'account.should_reconnect AS \'account@should_reconnect\', '
+            'account.scopes AS \'account@scopes\', '
+            'account.created_epoch AS \'account@created_epoch\', '
+            'account.modified_epoch AS \'account@modified_epoch\' '
+            'FROM $_table AS part '
+            'LEFT JOIN auth_service_account AS account '
+            'ON part.account_id = account.account_id ' +
             (where != null ? 'WHERE ' + where : '') +
             (limit != null ? 'LIMIT ' + limit.toString() : ''),
         whereArgs);
@@ -124,5 +124,15 @@ class FetchRepositoryPart {
       partMap['account'] = accountMap;
       return partMap;
     }).toList();
+  }
+
+  Future<int> countByAccountAndApi(int accountId, FetchApiEnum api) async {
+    int count = Sqflite.firstIntValue(await _database.query('SELECT COUNT(*) '
+        'FROM $_table as part'
+        'LEFT JOIN auth_service_account AS account '
+        'ON part.account_id = account.account_id ',
+      where: 'part.api_enum = ?1 AND part.account_id = ?2 ',
+      whereArgs: [api.value, accountId],))!;
+    return count;
   }
 }

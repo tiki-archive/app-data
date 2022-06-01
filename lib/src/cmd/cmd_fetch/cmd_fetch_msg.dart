@@ -1,8 +1,10 @@
 import 'dart:core';
 
+import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 
 import '../../account/account_model.dart';
+import '../../account/account_service.dart';
 import '../../company/company_service.dart';
 import '../../decision/decision_strategy_spam.dart';
 import '../../email/email_service.dart';
@@ -22,6 +24,7 @@ class CmdFetchMsg extends CmdMgrCmd {
   final Logger _log = Logger('CmdFetchMsg');
   final List<EmailMsgModel> _save = [];
   final List<EmailMsgModel> _fetched = [];
+  int _total = 0;
 
   final FetchService _fetchService;
   final AccountModel _account;
@@ -34,12 +37,13 @@ class CmdFetchMsg extends CmdMgrCmd {
   CmdFetchMsg(
       AccountModel this._account,
       FetchService this._fetchService,
-      DecisionStrategySpam this._decisionStrategySpam,
-      GraphStrategyEmail this._graphStrategyEmail,
+      AccountService accountService,
       EmailService this._emailService,
       CompanyService this._companyService,
-      IntgContextEmail this._intgContextEmail,
-  );
+      DecisionStrategySpam this._decisionStrategySpam,
+      GraphStrategyEmail this._graphStrategyEmail,
+      {Httpp? httpp}
+  ) : _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
 
   @override
   String get id => generateId(_account);
@@ -48,17 +52,19 @@ class CmdFetchMsg extends CmdMgrCmd {
   Duration get minRunFreq => Duration(days: 1);
 
   @override
+  Future<void> onStart() async {
+    _total = await _fetchService.countParts(_account);
+    _getPartsAndFetchMsg();
+  }
+
+  @override
   Future<void> onPause() async {
     _processFetchedMessages();
   }
 
   @override
   Future<void> onResume() async {
-    _getPartsAndFetchMsg();
-  }
-
-  @override
-  Future<void> onStart() async {
+    _total = await _fetchService.countParts(_account);
     _getPartsAndFetchMsg();
   }
 
@@ -70,20 +76,22 @@ class CmdFetchMsg extends CmdMgrCmd {
   static String generateId(AccountModel account) {
     int id = account.accountId!;
     String prov = FetchService.apiFromProvider(account.provider)!.value;
-    return "FetchInboxCommand.$prov.$id";
+    return "CmdFetchMsg.$prov.$id";
   }
 
   Future<void> _getPartsAndFetchMsg() async {
-    if (!await _intgContextEmail.isConnected(_account)) {
-      _log.warning('${_account.email} - ${_account.provider} not connected.');
-      notify(CmdMgrNotificationFinish(id));
-    }
-    List<FetchModelPart> parts = await _fetchService.getParts(_account);
-    if(parts.isEmpty){
-      _log.warning('${_account.email} - ${_account.provider} no parts to fetch.');
+    _total = await _fetchService.countParts(_account);
+    if(_total == 0){
+      _log.finest('${_account.email} - ${_account.provider} no parts to fetch. Finishing CmdFetchMsg');
       notify(CmdMgrNotificationFinish(id));
       return;
     }
+    if (!await _intgContextEmail.isConnected(_account)) {
+      _log.warning('${_account.email} - ${_account.provider} not connected. Finishing CmdFetchMsg');
+      notify(CmdMgrNotificationFinish(id));
+      return;
+    }
+    List<FetchModelPart> parts = await _fetchService.getParts(_account);
     _fetchMessages(parts);
   }
 
@@ -104,7 +112,8 @@ class CmdFetchMsg extends CmdMgrCmd {
     if (message.toEmail == _account.email! &&
         message.sender?.unsubscribeMailTo != null) _save.add(message);
     _fetched.add(message);
-    notify(CmdFetchMsgNotification(_account, _save, _fetched));
+    _log.fine('Fetched ${message.id}.');
+    notify(CmdFetchMsgNotification(_account, _save, _fetched, _total));
   }
 
   Future<void> _processFetchedMessages() async {
