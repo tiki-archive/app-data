@@ -1,3 +1,4 @@
+import 'package:example/widgets/widgety.dart';
 import 'package:flutter/material.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
@@ -7,11 +8,14 @@ import 'package:tiki_decision/tiki_decision.dart';
 import 'package:tiki_kv/tiki_kv.dart';
 import 'package:tiki_localgraph/tiki_localgraph.dart';
 import 'package:tiki_spam_cards/tiki_spam_cards.dart';
-import 'package:tiki_style/tiki_style.dart';
 import 'package:tiki_wallet/tiki_wallet.dart';
+
+import 'widgets/fetch_command_tester.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  String Function() accessToken = () => '';
 
   Httpp httpp = Httpp();
   Database database = await openDatabase('tiki_data_test.db');
@@ -40,28 +44,26 @@ void main() async {
   runApp(MaterialApp(
     title: 'Data Example',
     theme: ThemeData(),
-    home: Scaffold(
-      body: Center(child: Widgety(tikiData)),
+    home: Builder(builder: (context) => Scaffold(
+      body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
+              child: Text('App Screen Test'),
+              onPressed: () => navigateTo(Widgety(tikiData), context)),
+              ElevatedButton(
+                  child: Text('Fetch Command Test'),
+                  onPressed: () => navigateTo(FetchCommandTester(tikiData), context))
+            ]
+          )
+      ),
     ),
-  ));
+  )));
 }
 
-class Widgety extends StatelessWidget {
-  final TikiData tikiData;
-
-  Widgety(this.tikiData);
-
-  @override
-  Widget build(BuildContext context) {
-    TikiStyle style = TikiStyle.init(context);
-    return tikiData.widget(
-        headerBar: Container(
-      height: SizeProvider.instance.height(34),
-      color: Colors.blue,
-    ));
-  }
+navigateTo(Widget destination, BuildContext context) {
+  Navigator.of(context).push(MaterialPageRoute(builder: (context) => destination));
 }
 
-String accessToken() {
-  return '';
-}
+
