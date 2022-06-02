@@ -38,6 +38,7 @@ class TikiData {
   late final CmdMgrService _cmdMgrService;
   late final GraphStrategyEmail _graphStrategyEmail;
   late final DecisionStrategySpam _decisionStrategySpam;
+  late final Httpp _httpp;
 
   Future<TikiData> init(
       {required Database database,
@@ -47,13 +48,14 @@ class TikiData {
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
       String? Function()? accessToken,
       Httpp? httpp}) async {
+    _httpp = httpp ?? Httpp();
     _enrichService =
         EnrichService(httpp: httpp, refresh: refresh, accessToken: accessToken);
     _companyService = await CompanyService(_enrichService).open(database);
     _accountService = await AccountService().open(database);
     _emailService = await EmailService().open(database);
     _cmdMgrService = await CmdMgrService(database).init();
-
+    _graphStrategyEmail = await GraphStrategyEmail(localGraph);
     _decisionStrategySpam = DecisionStrategySpam(
         decision, spamCards, _emailService, _accountService);
 
@@ -94,6 +96,8 @@ class TikiData {
     await _emailService.deleteAll();
   }
 
+  CmdMgrService get cmdMgrService => _cmdMgrService;
+
   Future<void> _fetchInbox(AccountModel account) async {
     String? page = await _fetchService.getPage(account);
     DateTime? since = await _cmdMgrService.getLastRun(CmdFetchInbox.generateId(account));
@@ -102,7 +106,9 @@ class TikiData {
         account,
         since,
         page,
-        _accountService);
+        _accountService,
+        _httpp
+    );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
     cmd.listeners.add((notif) async {
@@ -120,7 +126,8 @@ class TikiData {
         _emailService,
         _companyService,
         _decisionStrategySpam,
-        _graphStrategyEmail
+        _graphStrategyEmail,
+        _httpp
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);

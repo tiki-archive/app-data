@@ -127,12 +127,12 @@ class FetchRepositoryPart {
   }
 
   Future<int> countByAccountAndApi(int accountId, FetchApiEnum api) async {
-    int count = Sqflite.firstIntValue(await _database.query('SELECT COUNT(*) '
-        'FROM $_table as part'
+    int count = Sqflite.firstIntValue(await _database.rawQuery('SELECT COUNT(*) '
+        'FROM $_table as part '
         'LEFT JOIN auth_service_account AS account '
-        'ON part.account_id = account.account_id ',
-      where: 'part.api_enum = ?1 AND part.account_id = ?2 ',
-      whereArgs: [api.value, accountId],))!;
+        'ON part.account_id = account.account_id '
+        'WHERE part.api_enum = ?1 AND part.account_id = ?2 ',
+      [api.value, accountId],))!;
     return count;
   }
 }

@@ -26,7 +26,9 @@ class CmdFetchInbox extends CmdMgrCmd{
       AccountModel this._account,
       DateTime? this._since,
       String? this._page,
-      AccountService accountService, {Httpp? httpp}) :
+      AccountService accountService,
+      Httpp httpp
+    ) :
         this._intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
 
   Future<void> index() async {
@@ -74,7 +76,7 @@ class CmdFetchInbox extends CmdMgrCmd{
     return "CmdFetchInbox.$prov.$id";
   }
 
-  Future<void> _saveParts(List<EmailMsgModel> messages, {String page = ''}) async {
+  Future<void> _saveParts(List<EmailMsgModel> messages, {String? page}) async {
       List<FetchModelPart<EmailMsgModel>> parts = messages.map((message) =>
           FetchModelPart(
               extId: message.extMessageId,
@@ -84,7 +86,7 @@ class CmdFetchInbox extends CmdMgrCmd{
           .toList();
       await _fetchService.saveParts(parts, _account);
       _page = page;
-      await _fetchService.savePage(_page!, _account);
+      if(_page !=null) await _fetchService.savePage(_page!, _account);
       notify(CmdFetchInboxNotification(_account, messages));
       _log.fine('indexed ${messages.length} messages');
   }

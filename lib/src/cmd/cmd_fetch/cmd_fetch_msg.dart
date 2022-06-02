@@ -42,7 +42,7 @@ class CmdFetchMsg extends CmdMgrCmd {
       CompanyService this._companyService,
       DecisionStrategySpam this._decisionStrategySpam,
       GraphStrategyEmail this._graphStrategyEmail,
-      {Httpp? httpp}
+      Httpp httpp
   ) : _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
 
   @override
@@ -108,11 +108,11 @@ class CmdFetchMsg extends CmdMgrCmd {
     );
   }
 
-  void _onMessageFetched(message){
+  void _onMessageFetched(EmailMsgModel message){
     if (message.toEmail == _account.email! &&
         message.sender?.unsubscribeMailTo != null) _save.add(message);
     _fetched.add(message);
-    _log.fine('Fetched ${message.id}.');
+    _log.fine('Fetched ${message.messageId}.');
     notify(CmdFetchMsgNotification(_account, _save, _fetched, _total));
   }
 
@@ -121,7 +121,7 @@ class CmdFetchMsg extends CmdMgrCmd {
     Map<String, EmailSenderModel> senders = {};
     _save.where((msg) => msg.sender != null && msg.sender?.email != null)
         .forEach((msg) => senders[msg.sender!.email!] = msg.sender!);
-    await _saveSenders(senders, _save);
+    await _saveSenders(senders);
     await _saveMessages(_save);
     await _saveCompanies(senders);
     await _fetchService.deleteParts(_fetched, _account);
@@ -130,14 +130,14 @@ class CmdFetchMsg extends CmdMgrCmd {
     if(status == CmdMgrCmdStatus.running) _getPartsAndFetchMsg();
   }
 
-  Future<void> _saveMessages(save) async {
+  Future<void> _saveMessages(List<EmailMsgModel> save) async {
     _log.fine('Saving ${save.length} messages');
     await _emailService.upsertMessages(save);
   }
 
-  Future<void> _saveSenders(senders, save) async {
+  Future<void> _saveSenders(Map<String, EmailSenderModel> senders) async {
     senders.forEach((email, sender) {
-      List<DateTime?> dates = save.map((msg) {
+      List<DateTime?> dates = _save.map((msg) {
         if (msg.sender?.email == email) return msg.receivedDate;
       }).toList();
       DateTime? since = dates.reduce((min, date) =>
@@ -151,7 +151,7 @@ class CmdFetchMsg extends CmdMgrCmd {
     await _emailService.upsertSenders(List.of(senders.values));
   }
 
-  Future<void> _saveCompanies(senders) async {
+  Future<void> _saveCompanies(Map<String, EmailSenderModel> senders) async {
     Set<String> domains = {};
     for (var sender in senders.values) {
       if (sender.company?.domain != null) {
