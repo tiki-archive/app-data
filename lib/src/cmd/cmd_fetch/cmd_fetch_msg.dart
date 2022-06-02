@@ -42,7 +42,7 @@ class CmdFetchMsg extends CmdMgrCmd {
       CompanyService this._companyService,
       DecisionStrategySpam this._decisionStrategySpam,
       GraphStrategyEmail this._graphStrategyEmail,
-      Httpp httpp
+      Httpp? httpp
   ) : _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
 
   @override

@@ -27,7 +27,7 @@ class CmdFetchInbox extends CmdMgrCmd{
       DateTime? this._since,
       String? this._page,
       AccountService accountService,
-      Httpp httpp
+      Httpp? httpp
     ) :
         this._intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
 
@@ -93,7 +93,7 @@ class CmdFetchInbox extends CmdMgrCmd{
 
   Future<void> _onFinish() async {
       _log.fine('finished email index for ${_account.email}.');
-      await _fetchService.savePage(_page!, _account);
+      if(_page !=null) await _fetchService.savePage(_page!, _account);
       notify(CmdMgrNotificationFinish(id));
   }
 }

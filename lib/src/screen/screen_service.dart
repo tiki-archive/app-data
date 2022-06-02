@@ -37,7 +37,6 @@ class ScreenService extends ChangeNotifier {
   final DecisionStrategySpam _decisionStrategySpam;
   final EmailService _emailService;
   final CmdMgrService _cmdMgrService;
-
   CompanyService _companyService;
 
   GraphStrategyEmail _graphStrategySpam;
@@ -89,7 +88,9 @@ class ScreenService extends ChangeNotifier {
         account,
         since,
         page,
-        _accountService);
+        _accountService,
+        _httpp
+    );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(cmdListener);
     cmd.listeners.add((notif) async {
@@ -107,7 +108,8 @@ class ScreenService extends ChangeNotifier {
       _emailService,
       _companyService,
       _decisionStrategySpam,
-      _graphStrategySpam
+      _graphStrategySpam,
+      _httpp
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(cmdListener);
