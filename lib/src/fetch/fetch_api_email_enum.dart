@@ -3,21 +3,21 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-class FetchApiEnum {
+class FetchEmailApiEnum {
   final String _value;
 
-  const FetchApiEnum._(this._value);
+  const FetchEmailApiEnum._(this._value);
 
-  static const gmail = FetchApiEnum._('gmail');
-  static const outlook = FetchApiEnum._('outlook');
+  static const gmail = FetchEmailApiEnum._('gmail');
+  static const outlook = FetchEmailApiEnum._('outlook');
 
   static const values = [gmail, outlook];
 
   String get value => _value;
 
-  static FetchApiEnum? fromValue(String? s) {
+  static FetchEmailApiEnum? fromValue(String? s) {
     if (s != null) {
-      for (FetchApiEnum api in values) {
+      for (FetchEmailApiEnum api in values) {
         if (api.value == s) return api;
       }
     }

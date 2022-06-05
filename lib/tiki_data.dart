@@ -112,7 +112,7 @@ class TikiData {
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
     cmd.listeners.add((notif) async {
-      if(notif is CmdMgrNotificationFinish){
+      if(notif is CmdMgrCmdNotifFinish){
         _fetchMessages(account);
       }
     });

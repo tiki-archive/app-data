@@ -4,12 +4,12 @@
  */
 
 import '../account/account_model.dart';
-import 'fetch_api_enum.dart';
+import 'fetch_api_email_enum.dart';
 
 class FetchModelPage {
   int? fetchId;
   AccountModel? account;
-  FetchApiEnum? api;
+  FetchEmailApiEnum? api;
   String? page;
 
   FetchModelPage({this.fetchId, this.account, this.api, this.page});
@@ -21,7 +21,7 @@ class FetchModelPage {
         account = AccountModel.fromMap(map['account']);
       }
       if (map['api_enum'] != null) {
-        api = FetchApiEnum.fromValue(map['api_enum']);
+        api = FetchEmailApiEnum.fromValue(map['api_enum']);
       }
       if (map['fetched_epoch'] != null) {
         page = map['fetched_epoch'];

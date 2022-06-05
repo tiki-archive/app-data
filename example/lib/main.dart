@@ -1,4 +1,4 @@
-import 'package:example/widgets/widgety.dart';
+import 'widgets/widgety.dart';
 import 'package:flutter/material.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
