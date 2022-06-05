@@ -5,7 +5,7 @@
 
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-import 'fetch_api_enum.dart';
+import 'fetch_api_email_enum.dart';
 import 'fetch_model_page.dart';
 
 class FetchRepositoryPage {
@@ -37,7 +37,7 @@ class FetchRepositoryPage {
   }
 
   Future<FetchModelPage?> getByAccountIdAndApi(
-      int accountId, FetchApiEnum api) async {
+      int accountId, FetchEmailApiEnum api) async {
     final List<Map<String, Object?>> rows = await _select(
         where: "page.account_id = ?1 AND api_enum = ?2",
         whereArgs: [accountId, api.value]);

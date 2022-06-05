@@ -67,12 +67,14 @@ class CmdFetchInbox extends CmdMgrCmd{
 
   @override
   Future<void> onStop() async {
-    notify(CmdMgrNotificationFinish(id));
+    if(_page != null) {
+      await _fetchService.savePage(_page!, _account);
+    }
   }
 
   static String generateId(AccountModel account) {
     int id = account.accountId!;
-    String prov = FetchService.apiFromProvider(account.provider)!.value;
+    String prov = account.emailApi!.value;
     return "CmdFetchInbox.$prov.$id";
   }
 
@@ -81,7 +83,7 @@ class CmdFetchInbox extends CmdMgrCmd{
           FetchModelPart(
               extId: message.extMessageId,
               account: _account,
-              api: FetchService.apiFromProvider(_account.provider),
+              api: _account.emailApi,
               obj: message))
           .toList();
       await _fetchService.saveParts(parts, _account);
@@ -94,6 +96,6 @@ class CmdFetchInbox extends CmdMgrCmd{
   Future<void> _onFinish() async {
       _log.fine('finished email index for ${_account.email}.');
       if(_page !=null) await _fetchService.savePage(_page!, _account);
-      notify(CmdMgrNotificationFinish(id));
+      notify(CmdMgrCmdNotifFinish(id));
   }
 }

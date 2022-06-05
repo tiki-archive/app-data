@@ -7,7 +7,7 @@ import 'dart:convert';
 
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-import 'fetch_api_enum.dart';
+import 'fetch_api_email_enum.dart';
 import 'fetch_model_part.dart';
 
 class FetchRepositoryPart {
@@ -58,7 +58,7 @@ class FetchRepositoryPart {
   }
 
   Future<List<FetchModelPart<T>>> getByAccountAndApi<T>(int accountId,
-      FetchApiEnum api, T Function(Map<String, dynamic>? map) fromMap,
+      FetchEmailApiEnum api, T Function(Map<String, dynamic>? map) fromMap,
       {int? max}) async {
     final List<Map<String, Object?>> rows = await _select(
         where: 'part.api_enum = ?1 AND part.account_id = ?2 ',
@@ -126,7 +126,7 @@ class FetchRepositoryPart {
     }).toList();
   }
 
-  Future<int> countByAccountAndApi(int accountId, FetchApiEnum api) async {
+  Future<int> countByAccountAndApi(int accountId, FetchEmailApiEnum api) async {
     int count = Sqflite.firstIntValue(await _database.rawQuery('SELECT COUNT(*) '
         'FROM $_table as part '
         'LEFT JOIN auth_service_account AS account '

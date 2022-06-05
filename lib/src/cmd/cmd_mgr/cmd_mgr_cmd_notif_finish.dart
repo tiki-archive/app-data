@@ -1,7 +1,7 @@
 import 'cmd_mgr_cmd_notif.dart';
 
-class CmdMgrNotificationFinish extends CmdMgrCmdNotif{
+class CmdMgrCmdNotifFinish extends CmdMgrCmdNotif{
   final String commandId;
 
-  CmdMgrNotificationFinish(this.commandId);
+  CmdMgrCmdNotifFinish(this.commandId);
 }

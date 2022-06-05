@@ -15,6 +15,7 @@ import '../../fetch/fetch_service.dart';
 import '../../graph/graph_strategy_email.dart';
 import '../../intg/intg_context_email.dart';
 import '../cmd_mgr/cmd_mgr_cmd.dart';
+import '../cmd_mgr/cmd_mgr_cmd_notif_exception.dart';
 import '../cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
 import '../cmd_mgr/cmd_mgr_cmd_status.dart';
 import 'cmd_fetch_msg_notification.dart';
@@ -75,7 +76,7 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   static String generateId(AccountModel account) {
     int id = account.accountId!;
-    String prov = FetchService.apiFromProvider(account.provider)!.value;
+    String prov = account.emailApi!.value;
     return "CmdFetchMsg.$prov.$id";
   }
 
@@ -83,12 +84,12 @@ class CmdFetchMsg extends CmdMgrCmd {
     _total = await _fetchService.countParts(_account);
     if(_total == 0){
       _log.finest('${_account.email} - ${_account.provider} no parts to fetch. Finishing CmdFetchMsg');
-      notify(CmdMgrNotificationFinish(id));
+      notify(CmdMgrCmdNotifFinish(id));
       return;
     }
     if (!await _intgContextEmail.isConnected(_account)) {
       _log.warning('${_account.email} - ${_account.provider} not connected. Finishing CmdFetchMsg');
-      notify(CmdMgrNotificationFinish(id));
+      notify(CmdMgrCmdNotifFinish(id));
       return;
     }
     List<FetchModelPart> parts = await _fetchService.getParts(_account);
@@ -100,12 +101,16 @@ class CmdFetchMsg extends CmdMgrCmd {
         .where((part) => part.obj?.extMessageId != null)
         .map((part) => part.obj!.extMessageId! as String)
         .toList();
-    _intgContextEmail.getMessages(
+    try {
+      _intgContextEmail.getMessages(
         account: _account,
         messageIds: ids,
         onResult: _onMessageFetched,
-        onFinish: _processFetchedMessages
-    );
+        onFinish: _processFetchedMessages,
+      );
+    }catch(e){
+      notify(CmdMgrCmdNotifException(id, exception: e));
+    }
   }
 
   void _onMessageFetched(EmailMsgModel message){

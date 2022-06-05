@@ -2,6 +2,9 @@ import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 
 import 'cmd_mgr_cmd.dart';
+import 'cmd_mgr_cmd_notif.dart';
+import 'cmd_mgr_cmd_notif_exception.dart';
+import 'cmd_mgr_cmd_notif_finish.dart';
 import 'cmd_mgr_last_run_repository.dart';
 import 'cmd_mgr_model.dart';
 import 'cmd_mgr_cmd_status.dart';
@@ -29,6 +32,7 @@ class CmdMgrService{
       return false;
     }
     _model.commandQueue.add(command);
+    command.listeners.add(_commmandsListener);
     _log.finest('Command with id ${command.id} enqueued.');
     _log.finest('Queue has ${_model.commandQueue.length} commands.' );
     _runCommands();
@@ -101,4 +105,18 @@ class CmdMgrService{
     }
   }
 
+  Future<void> _commmandsListener(CmdMgrCmdNotif notif) async {
+    switch(notif.runtimeType){
+      case CmdMgrCmdNotifFinish :
+        String id = (notif as CmdMgrCmdNotifFinish).commandId;
+        _log.finest('Received finish notification from $id');
+        stopCommand(id);
+        break;
+      case CmdMgrCmdNotifException :
+        String id = (notif as CmdMgrCmdNotifException).commandId;
+        _log.finest('Received exception from $id: ${notif.exception.toString()} ');
+        stopCommand(id);
+        break;
+    }
+  }
 }

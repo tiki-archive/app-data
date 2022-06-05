@@ -3,6 +3,7 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import '../fetch/fetch_api_email_enum.dart';
 import 'account_model_provider.dart';
 
 class AccountModel {
@@ -111,4 +112,15 @@ class AccountModel {
       shouldReconnect.hashCode ^
       modified.hashCode ^
       created.hashCode;
+
+  FetchEmailApiEnum? get emailApi {
+    switch (provider) {
+      case AccountModelProvider.google:
+        return FetchEmailApiEnum.gmail;
+      case AccountModelProvider.microsoft:
+        return FetchEmailApiEnum.outlook;
+      default:
+        return null;
+    }
+  }
 }

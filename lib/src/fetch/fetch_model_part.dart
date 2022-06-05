@@ -6,13 +6,13 @@
 import 'dart:convert';
 
 import '../account/account_model.dart';
-import 'fetch_api_enum.dart';
+import 'fetch_api_email_enum.dart';
 
 class FetchModelPart<T> {
   int? partId;
   String? extId;
   AccountModel? account;
-  FetchApiEnum? api;
+  FetchEmailApiEnum? api;
   T? obj;
   DateTime? created;
   DateTime? modified;
@@ -35,7 +35,7 @@ class FetchModelPart<T> {
         account = AccountModel.fromMap(map['account']);
       }
       if (map['api_enum'] != null) {
-        api = FetchApiEnum.fromValue(map['api_enum']);
+        api = FetchEmailApiEnum.fromValue(map['api_enum']);
       }
       if (map['obj_json'] != null) {
         obj = fromMap(jsonDecode(map['obj_json']));
