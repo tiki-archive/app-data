@@ -56,8 +56,4 @@ class EmailService {
           ? _repositoryMsg.getBySenderEmail(sender.email!)
           : Future.value(List.empty());
 
-  Future<void> deleteAll() async {
-    await _repositorySender.deleteAll();
-    await _repositoryMsg.deleteAll();
-  }
 }

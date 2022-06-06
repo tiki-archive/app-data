@@ -17,28 +17,37 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ScreenService service = Provider.of<ScreenService>(context);
-    AccountModel? account = service.model.account;
     return Column(children: [
-      account == null || account.provider == AccountModelProvider.google
-          ? Container(
-              margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
-              child: service.intgContext.widget(
-                  account: account,
-                  provider: AccountModelProvider.google,
-                  onLink: (account) => service.controller.saveAccount(account),
-                  onUnlink: (email) => service.controller
-                      .removeAccount(AccountModelProvider.google, email)))
-          : Container(),
-      account == null || account.provider == AccountModelProvider.microsoft
-          ? Container(
-              margin: EdgeInsets.only(top: SizeProvider.instance.height(15)),
-              child: service.intgContext.widget(
-                  account: account,
-                  provider: AccountModelProvider.microsoft,
-                  onLink: (account) => service.controller.saveAccount(account),
-                  onUnlink: (email) => service.controller
-                      .removeAccount(AccountModelProvider.microsoft, email)))
-          : Container(),
+        ..._getConnectedAccounts(service),
+        ..._getConnectionWidgets(service)
+
     ]);
+  }
+
+  List<Widget> _getConnectedAccounts(ScreenService service) {
+    List<Widget> widgets = [];
+    service.accounts.forEach((AccountModel account) => widgets.add(
+        Container(
+          margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
+          child: service.intgContext.widget(
+          account: account,
+          provider: account.provider,
+          onLink: (account) => service.controller.saveAccount(account),
+          onUnlink: (email) => service.controller
+            .removeAccount(account.provider!, email)))));
+    return widgets;
+  }
+
+   List<Widget> _getConnectionWidgets(ScreenService service) {
+     List<Widget> widgets = [];
+     AccountModelProvider.values.forEach((provider) => widgets.add(
+      Container(
+          margin: EdgeInsets.only(top: SizeProvider.instance.height(15)),
+          child: service.intgContext.widget(
+              provider: provider,
+              onLink: (account) => service.controller.saveAccount(account),
+              onUnlink: (username) => service.controller
+                  .removeAccount(provider, username)))));
+     return widgets;
   }
 }
