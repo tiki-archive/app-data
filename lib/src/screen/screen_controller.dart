@@ -16,5 +16,5 @@ class ScreenController {
       service.removeAccount(type, username!);
 
   Future<void> saveAccount(AccountModel account) =>
-      service.saveAccount(account);
+      service.addAccount(account);
 }

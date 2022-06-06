@@ -12,5 +12,6 @@ class DecisionStrategy {
 
   void setLinked(bool isLinked) => _decision.setLinked(isLinked);
 
+  // TODO clear by account
   void clear() => _decision.clear();
 }

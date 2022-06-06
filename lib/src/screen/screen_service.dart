@@ -11,7 +11,9 @@ import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../cmd/cmd_fetch/cmd_fetch_inbox.dart';
+import '../cmd/cmd_fetch/cmd_fetch_inbox_notification.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg.dart';
+import '../cmd/cmd_fetch/cmd_fetch_msg_notification.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
 import '../cmd/cmd_mgr/cmd_mgr_service.dart';
@@ -27,7 +29,7 @@ import 'screen_presenter.dart';
 
 class ScreenService extends ChangeNotifier {
   Logger _log = Logger('ScreenService');
-  final ScreenModel model = ScreenModel();
+  final ScreenModel _model = ScreenModel();
   late final ScreenController controller;
   late final ScreenPresenter presenter;
   final Httpp? _httpp;
@@ -55,9 +57,19 @@ class ScreenService extends ChangeNotifier {
     presenter = ScreenPresenter(this);
   }
 
-  Future<void> saveAccount(AccountModel account) async {
-    model.account = account;
-    await _accountService.save(account);
+  get accounts => _model.accounts;
+
+  IntgContext get intgContext => IntgContext(_accountService, httpp: _httpp);
+
+  Future<void> addAccount(AccountModel account) async {
+    account = await _accountService.save(account);
+    try{
+      AccountModel oldAcct = _model.accounts.firstWhere((acc) => acc.provider == account.provider && acc.username == account.username);
+      _model.accounts.remove(oldAcct);
+      _model.accounts.add(account);
+    }catch(e) {
+      _model.accounts.add(account);
+    }
     notifyListeners();
     _decisionStrategySpam.setLinked(true);
     _decisionStrategySpam.loadFromDb(account);
@@ -65,20 +77,21 @@ class ScreenService extends ChangeNotifier {
     _fetchMessages(account);
   }
 
-  Future<void> removeAccount(AccountModelProvider type, String username) async {
-    if(model.account != null) {
-      _cmdMgrService.stopCommand(CmdFetchMsg.generateId(model.account!));
-      _cmdMgrService.stopCommand(CmdFetchInbox.generateId(model.account!));
-      model.account = null;
+  Future<void> removeAccount(AccountModelProvider type, String? username) async {
+    try {
+      AccountModel account = _model.accounts.firstWhere((account) =>
+        account.provider == type && account.email == username);
+      _cmdMgrService.stopCommand(CmdFetchMsg.generateId(account));
+      _cmdMgrService.stopCommand(CmdFetchInbox.generateId(account));
+      _model.accounts.remove(account);
+      account.shouldReconnect = true;
+      await _accountService.save(account);
+      _decisionStrategySpam.clear();
+    }catch (e){
+      _log.warning("Account $username of ${type.runtimeType} not found");
     }
-    await _accountService.remove(username, type.value);
-    await _emailService.deleteAll();
-    _decisionStrategySpam.clear();
     notifyListeners();
-    _decisionStrategySpam.setLinked(false);
   }
-
-  IntgContext get intgContext => IntgContext(_accountService, httpp: _httpp);
 
   Future<void> _fetchInbox(AccountModel account) async {
     String? page = await _fetchService.getPage(account);
@@ -92,7 +105,7 @@ class ScreenService extends ChangeNotifier {
         _httpp
     );
     _cmdMgrService.addCommand(cmd);
-    cmd.listeners.add(cmdListener);
+    cmd.listeners.add(_cmdListener);
     cmd.listeners.add((notif) async {
       if(notif is CmdMgrCmdNotifFinish){
         _fetchMessages(account);
@@ -112,10 +125,19 @@ class ScreenService extends ChangeNotifier {
       _httpp
     );
     _cmdMgrService.addCommand(cmd);
-    cmd.listeners.add(cmdListener);
+    cmd.listeners.add(_cmdListener);
   }
 
-  Future<void> cmdListener(CmdMgrCmdNotif notif) async {
-    _log.finest("received " + notif.toString());
+  Future<void> _cmdListener(CmdMgrCmdNotif notif) async {
+    _log.finest("received ${notif.runtimeType.toString()}");
+    switch(notif.runtimeType){
+      case CmdFetchInboxNotification :
+        // TODO notify decisionStrategySpam
+        break;
+      case CmdFetchMsgNotification :
+        // TODO notify decisionStrategySpam
+        break;
+    }
   }
+
 }

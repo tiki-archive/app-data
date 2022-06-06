@@ -6,7 +6,7 @@
 import '../account/account_model.dart';
 
 class ScreenModel {
-  AccountModel? account;
+  List<AccountModel> accounts = List.empty(growable: true);
 
-  ScreenModel({this.account});
+  ScreenModel();
 }
