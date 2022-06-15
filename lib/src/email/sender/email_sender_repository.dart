@@ -115,7 +115,6 @@ class EmailSenderRepository {
     }
   }
 
-  Future<void> deleteAll() => _database.delete(_table);
 
   Future<List<Map<String, Object?>>> _select(
       {String? where, List<Object?>? whereArgs, Transaction? txn}) async {

@@ -67,17 +67,10 @@ class AccountRepository {
     return AccountModel.fromMap(rows[0]);
   }
 
-  Future<int> deleteByEmailAndProvider(String email, String provider) async =>
-      await _database.delete(_table,
-          where: "provider = ? AND email = ?", whereArgs: [provider, email]);
-
   Future<List<AccountModel>> getAll() async {
     final List<Map<String, Object?>> rows = await _database.query(_table);
     if (rows.isEmpty) return [];
     return rows.map((e) => AccountModel.fromMap(e)).toList();
   }
 
-  Future<void> truncate() async {
-    _database.delete(_table);
-  }
 }

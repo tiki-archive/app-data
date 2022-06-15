@@ -64,7 +64,8 @@ class ScreenService extends ChangeNotifier {
   Future<void> addAccount(AccountModel account) async {
     account = await _accountService.save(account);
     try{
-      AccountModel oldAcct = _model.accounts.firstWhere((acc) => acc.provider == account.provider && acc.username == account.username);
+      AccountModel oldAcct = _model.accounts.firstWhere((acc) =>
+        acc.provider == account.provider && acc.username == account.username);
       _model.accounts.remove(oldAcct);
       _model.accounts.add(account);
     }catch(e) {
