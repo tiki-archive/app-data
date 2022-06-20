@@ -28,7 +28,6 @@ class FetchService {
     return this;
   }
 
-
   Future<List<FetchModelPart<EmailMsgModel>>> getParts(
       AccountModel account
       ) async => await _partRepository.getByAccountAndApi<EmailMsgModel>(
@@ -55,7 +54,7 @@ class FetchService {
         account.accountId!).then((count) =>
           _log.fine('deleted $count parts'));
 
-  savePage(String page, AccountModel account) async =>
+  Future<void> savePage(String page, AccountModel account) async =>
       await _pageRepository.upsert(
         FetchModelPage(
             account: account,

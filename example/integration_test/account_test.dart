@@ -130,7 +130,6 @@ void main() {
           created: DateTime.now());
 
       AccountModel saved = await accountService.save(account);
-      await accountService.remove(saved.email!, saved.provider!.value);
 
       List<AccountModel> accounts = await accountService.getAll();
       expect(accounts.length, 0);
