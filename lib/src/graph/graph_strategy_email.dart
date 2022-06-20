@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:amplitude_flutter/amplitude.dart';
+import 'package:flutter/foundation.dart';
 import 'package:tiki_localgraph/tiki_localgraph.dart';
 import 'package:tiki_localgraph/tiki_localgraph_edge.dart';
 import 'package:tiki_localgraph/tiki_localgraph_vertex.dart';
@@ -26,7 +28,6 @@ class GraphStrategyEmail extends GraphStrategy {
 
   List<TikiLocalGraphEdge> _edges(List<EmailMsgModel> emails) {
     List<TikiLocalGraphEdge> edges = [];
-
     emails.forEach((email) {
       String occ = _occurrence(email);
       edges.add(TikiLocalGraphEdge(
@@ -52,7 +53,8 @@ class GraphStrategyEmail extends GraphStrategy {
                 email.sender!.company!.domain!)));
       }
     });
-
+    // TODO send edges.length NUMBER OF CREATED SIGNALS
+    Amplitude.getInstance(kDebugMode ? "App-test" : "App").logEvent("ADDED_DATA_SIGNALS");
     return edges;
   }
 

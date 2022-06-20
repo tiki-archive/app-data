@@ -1,5 +1,6 @@
 import 'dart:core';
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 
@@ -123,6 +124,7 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   Future<void> _processFetchedMessages() async {
     _log.fine('Fetched ${_fetched.length} messages');
+    Amplitude.getInstance().logEvent("EMAIL_MSG_FETCHED");
     Map<String, EmailSenderModel> senders = {};
     _save.where((msg) => msg.sender != null && msg.sender?.email != null)
         .forEach((msg) => senders[msg.sender!.email!] = msg.sender!);

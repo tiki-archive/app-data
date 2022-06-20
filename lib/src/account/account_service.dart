@@ -3,6 +3,8 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'package:amplitude_flutter/amplitude.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'account_model.dart';
@@ -10,6 +12,8 @@ import 'account_repository.dart';
 
 class AccountService {
   late final AccountRepository _repository;
+
+  static const String amplitudeProject = kDebugMode ? "App-test" : "App" ;
 
   Future<AccountService> open(Database database) async {
     if (!database.isOpen)
@@ -25,10 +29,12 @@ class AccountService {
             account.provider!, account.username!,
             txn: txn);
         if(found == null){
+          Amplitude.getInstance().logEvent("EMAIL_ACCOUNT_ADDED");
           return _repository.insert(account, txn: txn);
         }
         account.accountId = found.accountId;
         account.created = found.created;
+        // TODO total number of connected accounts
         return _repository.update(account, txn: txn);
       });
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 
@@ -89,6 +90,8 @@ class CmdFetchInbox extends CmdMgrCmd{
       await _fetchService.saveParts(parts, _account);
       _page = page;
       if(_page !=null) await _fetchService.savePage(_page!, _account);
+      // TODO add numbers messages.count
+          Amplitude.getInstance().logEvent("EMAIL_MSG_INDEXED");
       notify(CmdFetchInboxNotification(_account, messages));
       _log.fine('indexed ${messages.length} messages');
   }

@@ -39,7 +39,8 @@ class TikiData {
       required TikiLocalGraph localGraph,
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
       String? Function()? accessToken,
-      Httpp? httpp}) async {
+      Httpp? httpp
+      Amplitude? amplitude}) async {
     _enrichService =
         EnrichService(httpp: httpp, refresh: refresh, accessToken: accessToken);
     _companyService = await CompanyService(_enrichService).open(database);
@@ -60,6 +61,7 @@ class TikiData {
         httpp: httpp);
 
     List<AccountModel> accounts = await _accountService.getAll();
+    // TODO AMPLITUDE TOTAL NUMBER OF CONNECTED ACCOUNTS
     for(AccountModel account in accounts) {
       if(!account.shouldReconnect!)
       _screenService.addAccount(account);
