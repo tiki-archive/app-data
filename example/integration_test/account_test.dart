@@ -17,7 +17,7 @@ void main() {
   group('Account Tests', () {
     test('Open - Success', () async {
       Database database = await openDatabase('${Uuid().v4()}.db');
-      AccountService accountService = await AccountService().open(database);
+      await AccountService().open(database);
     });
 
     test('Save - Insert - Success', () async {
@@ -31,7 +31,7 @@ void main() {
           email: randomEmail,
           displayName: 'Test Name',
           provider: AccountModelProvider.google,
-          shouldReconnect: true,
+          shouldReconnect: false,
           modified: DateTime.now(),
           created: DateTime.now());
 
@@ -61,7 +61,7 @@ void main() {
           email: randomEmail,
           displayName: 'Test Name',
           provider: AccountModelProvider.google,
-          shouldReconnect: true,
+          shouldReconnect: false,
           modified: DateTime.now(),
           created: DateTime.now());
 
@@ -85,12 +85,12 @@ void main() {
           email: randomEmail,
           displayName: 'Test Name',
           provider: AccountModelProvider.google,
-          shouldReconnect: true,
+          shouldReconnect: false,
           modified: DateTime.now(),
           created: DateTime.now());
 
       await accountService.save(account);
-      List<AccountModel> accounts = await accountService.getAll();
+      List<AccountModel> accounts = await accountService.getConnected();
 
       expect(accounts.length, 1);
       expect(accounts.first.accountId != null, true);
@@ -110,7 +110,7 @@ void main() {
     test('GetAll - None - Success', () async {
       Database database = await openDatabase('${Uuid().v4()}.db');
       AccountService accountService = await AccountService().open(database);
-      List<AccountModel> accounts = await accountService.getAll();
+      List<AccountModel> accounts = await accountService.getConnected();
       expect(accounts.length, 0);
     });
 
@@ -129,10 +129,8 @@ void main() {
           modified: DateTime.now(),
           created: DateTime.now());
 
-      AccountModel saved = await accountService.save(account);
-      await accountService.remove(saved.email!, saved.provider!.value);
-
-      List<AccountModel> accounts = await accountService.getAll();
+      await accountService.save(account);
+      List<AccountModel> accounts = await accountService.getConnected();
       expect(accounts.length, 0);
     });
   });

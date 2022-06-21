@@ -1,3 +1,6 @@
+import 'package:amplitude_flutter/amplitude.dart';
+
+import 'widgets/widgety.dart';
 import 'package:flutter/material.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
@@ -7,11 +10,14 @@ import 'package:tiki_decision/tiki_decision.dart';
 import 'package:tiki_kv/tiki_kv.dart';
 import 'package:tiki_localgraph/tiki_localgraph.dart';
 import 'package:tiki_spam_cards/tiki_spam_cards.dart';
-import 'package:tiki_style/tiki_style.dart';
 import 'package:tiki_wallet/tiki_wallet.dart';
+
+import 'widgets/fetch_command_tester.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  String Function() accessToken = () => '';
 
   Httpp httpp = Httpp();
   Database database = await openDatabase('tiki_data_test.db');
@@ -25,43 +31,50 @@ void main() async {
   TikiLocalGraph localGraph = await TikiLocalGraph(chainService)
       .open(database, httpp: httpp, accessToken: accessToken);
 
+
+
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) =>
+      print('${record.level.name} [${record.loggerName}] ${record.message}'));
+
+  Amplitude amplitude = Amplitude.getInstance(instanceName: "App-test");
+  await amplitude.init("6f52993a138d9209786c76a03c4e25cf");
+  await amplitude.enableCoppaControl();
+  await amplitude.setUserId(null);
+  await amplitude.trackingSessionEvents(true);
+
   TikiData tikiData = await TikiData().init(
       database: database,
       spamCards: TikiSpamCards(decision),
       decision: decision,
       localGraph: localGraph,
       httpp: httpp,
-      accessToken: accessToken);
-
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) =>
-      print('${record.level.name} [${record.loggerName}] ${record.message}'));
+      accessToken: accessToken,
+      amplitude: amplitude);
 
   runApp(MaterialApp(
     title: 'Data Example',
     theme: ThemeData(),
-    home: Scaffold(
-      body: Center(child: Widgety(tikiData)),
+    home: Builder(builder: (context) => Scaffold(
+      body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
+              child: Text('App Screen Test'),
+              onPressed: () => navigateTo(Widgety(tikiData), context)),
+              ElevatedButton(
+                  child: Text('Fetch Command Test'),
+                  onPressed: () => navigateTo(FetchCommandTester(tikiData), context))
+            ]
+          )
+      ),
     ),
-  ));
+  )));
 }
 
-class Widgety extends StatelessWidget {
-  final TikiData tikiData;
-
-  Widgety(this.tikiData);
-
-  @override
-  Widget build(BuildContext context) {
-    TikiStyle style = TikiStyle.init(context);
-    return tikiData.widget(
-        headerBar: Container(
-      height: SizeProvider.instance.height(34),
-      color: Colors.blue,
-    ));
-  }
+navigateTo(Widget destination, BuildContext context) {
+  Navigator.of(context).push(MaterialPageRoute(builder: (context) => destination));
 }
 
-String accessToken() {
-  return '';
-}
+

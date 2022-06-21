@@ -3,14 +3,12 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'email_sender_model.dart';
 
 class EmailSenderRepository {
   static const String _table = 'sender';
-  final _log = Logger('EmailRepositorySender');
 
   final Database _database;
 
@@ -115,7 +113,6 @@ class EmailSenderRepository {
     }
   }
 
-  Future<void> deleteAll() => _database.delete(_table);
 
   Future<List<Map<String, Object?>>> _select(
       {String? where, List<Object?>? whereArgs, Transaction? txn}) async {

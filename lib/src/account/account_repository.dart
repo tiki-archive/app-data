@@ -3,7 +3,6 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'account_model.dart';
@@ -11,7 +10,6 @@ import 'account_model_provider.dart';
 
 class AccountRepository {
   static const String _table = 'auth_service_account';
-  final _log = Logger('AccountRepository');
 
   final Database _database;
 
@@ -67,17 +65,11 @@ class AccountRepository {
     return AccountModel.fromMap(rows[0]);
   }
 
-  Future<int> deleteByEmailAndProvider(String email, String provider) async =>
-      await _database.delete(_table,
-          where: "provider = ? AND email = ?", whereArgs: [provider, email]);
-
-  Future<List<AccountModel>> getAll() async {
-    final List<Map<String, Object?>> rows = await _database.query(_table);
+  Future<List<AccountModel>> getConnected() async {
+    final List<Map<String, Object?>> rows = await _database.query(_table,
+      where: "should_reconnect = 0");
     if (rows.isEmpty) return [];
     return rows.map((e) => AccountModel.fromMap(e)).toList();
   }
 
-  Future<void> truncate() async {
-    _database.delete(_table);
-  }
 }

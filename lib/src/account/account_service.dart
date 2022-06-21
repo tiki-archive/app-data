@@ -24,15 +24,13 @@ class AccountService {
         AccountModel? found = await _repository.getByProviderAndUsername(
             account.provider!, account.username!,
             txn: txn);
-        return found == null
-            ? _repository.insert(account, txn: txn)
-            : _repository.update(account, txn: txn);
+        if(found == null){
+          return _repository.insert(account, txn: txn);
+        }
+        account.accountId = found.accountId;
+        account.created = found.created;
+        return _repository.update(account, txn: txn);
       });
 
-  Future<void> remove(String email, String provider) =>
-      _repository.deleteByEmailAndProvider(email, provider);
-
-  Future<void> removeAll() => _repository.truncate();
-
-  Future<List<AccountModel>> getAll() => _repository.getAll();
+  Future<List<AccountModel>> getConnected() => _repository.getConnected();
 }

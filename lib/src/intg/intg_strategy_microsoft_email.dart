@@ -20,12 +20,12 @@ class IntgStrategyMicrosoftEmail extends IntgStrategyMicrosoft
   Future<void> getInbox(
           {required AccountModel account,
           DateTime? since,
-          required Function(List<EmailMsgModel> messages) onResult,
+          required Function(List<EmailMsgModel> messages, {String? page}) onResult,
           required Function() onFinish}) =>
       construct(account: account).fetchInbox(
-          onResult: (msgIdList) => onResult(msgIdList
+          onResult: (msgIdList, {page}) => onResult(msgIdList
               .map((msgId) => EmailMsgModel(extMessageId: msgId))
-              .toList()),
+              .toList(), page: page),
           onFinish: onFinish);
 
   @override

@@ -1,3 +1,12 @@
+## 0.0.10
+
+* add command slice
+* implement CommandManagerService
+* implement CommandFetchInbox and CommandFetchMsg
+* prepare for multiple accounts
+* update error log
+* add data pipeline monitoring
+
 ## 0.0.9
 
 * fixed init bugs
