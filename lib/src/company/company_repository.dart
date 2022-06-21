@@ -3,14 +3,12 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'company_model.dart';
 
 class CompanyRepository {
   static const String _table = 'company';
-  final _log = Logger('CompanyRepository');
 
   final Database _database;
 

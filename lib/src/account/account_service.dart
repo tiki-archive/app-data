@@ -32,5 +32,5 @@ class AccountService {
         return _repository.update(account, txn: txn);
       });
 
-  Future<List<AccountModel>> getAll() => _repository.getAll();
+  Future<List<AccountModel>> getConnected() => _repository.getConnected();
 }

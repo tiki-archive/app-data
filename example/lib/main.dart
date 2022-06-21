@@ -1,3 +1,5 @@
+import 'package:amplitude_flutter/amplitude.dart';
+
 import 'widgets/widgety.dart';
 import 'package:flutter/material.dart';
 import 'package:httpp/httpp.dart';
@@ -29,17 +31,26 @@ void main() async {
   TikiLocalGraph localGraph = await TikiLocalGraph(chainService)
       .open(database, httpp: httpp, accessToken: accessToken);
 
+
+
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) =>
+      print('${record.level.name} [${record.loggerName}] ${record.message}'));
+
+  Amplitude amplitude = Amplitude.getInstance(instanceName: "App-test");
+  await amplitude.init("6f52993a138d9209786c76a03c4e25cf");
+  await amplitude.enableCoppaControl();
+  await amplitude.setUserId(null);
+  await amplitude.trackingSessionEvents(true);
+
   TikiData tikiData = await TikiData().init(
       database: database,
       spamCards: TikiSpamCards(decision),
       decision: decision,
       localGraph: localGraph,
       httpp: httpp,
-      accessToken: accessToken);
-
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) =>
-      print('${record.level.name} [${record.loggerName}] ${record.message}'));
+      accessToken: accessToken,
+      amplitude: amplitude);
 
   runApp(MaterialApp(
     title: 'Data Example',

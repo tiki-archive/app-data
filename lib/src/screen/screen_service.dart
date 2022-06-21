@@ -3,6 +3,7 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
@@ -11,9 +12,7 @@ import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../cmd/cmd_fetch/cmd_fetch_inbox.dart';
-import '../cmd/cmd_fetch/cmd_fetch_inbox_notification.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg.dart';
-import '../cmd/cmd_fetch/cmd_fetch_msg_notification.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
 import '../cmd/cmd_mgr/cmd_mgr_service.dart';
@@ -43,6 +42,8 @@ class ScreenService extends ChangeNotifier {
 
   GraphStrategyEmail _graphStrategySpam;
 
+  Amplitude? _amplitude;
+
   ScreenService(
       this._accountService,
       this._fetchService,
@@ -51,8 +52,8 @@ class ScreenService extends ChangeNotifier {
       this._cmdMgrService,
       this._companyService,
       this._graphStrategySpam,
-      {Httpp? httpp})
-      : _httpp = httpp {
+      {Httpp? httpp, Amplitude? amplitude})
+      : _amplitude = amplitude, _httpp = httpp {
     controller = ScreenController(this);
     presenter = ScreenPresenter(this);
   }
@@ -72,6 +73,7 @@ class ScreenService extends ChangeNotifier {
       _model.accounts.add(account);
     }
     notifyListeners();
+    _sendConnectedAccounts();
     _decisionStrategySpam.setLinked(true);
     _decisionStrategySpam.loadFromDb(account);
     _fetchInbox(account);
@@ -88,6 +90,7 @@ class ScreenService extends ChangeNotifier {
       account.shouldReconnect = true;
       await _accountService.save(account);
       _decisionStrategySpam.clear();
+      _sendConnectedAccounts();
     }catch (e){
       _log.warning("Account $username of ${type.runtimeType} not found");
     }
@@ -103,7 +106,8 @@ class ScreenService extends ChangeNotifier {
         since,
         page,
         _accountService,
-        _httpp
+        _httpp,
+        _amplitude
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
@@ -123,7 +127,8 @@ class ScreenService extends ChangeNotifier {
       _companyService,
       _decisionStrategySpam,
       _graphStrategySpam,
-      _httpp
+      _httpp,
+      _amplitude
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
@@ -131,13 +136,13 @@ class ScreenService extends ChangeNotifier {
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {
     _log.finest("received ${notif.runtimeType.toString()}");
-    switch(notif.runtimeType){
-      case CmdFetchInboxNotification :
-        // TODO notify decisionStrategySpam
-        break;
-      case CmdFetchMsgNotification :
-        // TODO notify decisionStrategySpam
-        break;
+  }
+
+  void _sendConnectedAccounts() {
+    if(_amplitude != null){
+      _amplitude!.logEvent("CONNECTED_ACCOUNTS", eventProperties: {
+        "count" : accounts.length
+      });
     }
   }
 

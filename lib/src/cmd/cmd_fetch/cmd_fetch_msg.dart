@@ -1,5 +1,6 @@
 import 'dart:core';
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 
@@ -35,6 +36,8 @@ class CmdFetchMsg extends CmdMgrCmd {
   final CompanyService _companyService;
   final IntgContextEmail _intgContextEmail;
 
+  Amplitude? _amplitude;
+
   CmdFetchMsg(
       AccountModel this._account,
       FetchService this._fetchService,
@@ -43,8 +46,10 @@ class CmdFetchMsg extends CmdMgrCmd {
       CompanyService this._companyService,
       DecisionStrategySpam this._decisionStrategySpam,
       GraphStrategyEmail this._graphStrategyEmail,
-      Httpp? httpp
-  ) : _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
+      Httpp? httpp,
+      Amplitude? amplitude
+  ) : _amplitude = amplitude,
+      _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
 
   @override
   String get id => generateId(_account);
@@ -123,6 +128,11 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   Future<void> _processFetchedMessages() async {
     _log.fine('Fetched ${_fetched.length} messages');
+    if(_amplitude != null){
+      _amplitude!.logEvent("EMAILS_FETCHED", eventProperties: {
+        "count" : _fetched.length
+      });
+    }
     Map<String, EmailSenderModel> senders = {};
     _save.where((msg) => msg.sender != null && msg.sender?.email != null)
         .forEach((msg) => senders[msg.sender!.email!] = msg.sender!);

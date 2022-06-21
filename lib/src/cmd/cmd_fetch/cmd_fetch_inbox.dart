@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
 
@@ -21,15 +22,19 @@ class CmdFetchInbox extends CmdMgrCmd{
   final IntgContextEmail _intgContextEmail;
   final FetchService _fetchService;
 
+  Amplitude? _amplitude;
+
   CmdFetchInbox(
       FetchService this._fetchService,
       AccountModel this._account,
       DateTime? this._since,
       String? this._page,
       AccountService accountService,
-      Httpp? httpp
+      Httpp? httpp,
+      Amplitude? amplitude
     ) :
-        this._intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
+      _amplitude = amplitude,
+      _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
 
   Future<void> index() async {
     _log.fine('email index ${_account.email} on ${DateTime.now().toIso8601String()}');
@@ -89,6 +94,12 @@ class CmdFetchInbox extends CmdMgrCmd{
       await _fetchService.saveParts(parts, _account);
       _page = page;
       if(_page !=null) await _fetchService.savePage(_page!, _account);
+      if(_amplitude != null){
+        _amplitude!.logEvent("EMAILS_INDEXED", eventProperties: {
+          "count" : parts.length
+        });
+      }
+          Amplitude.getInstance().logEvent("EMAIL_MSG_INDEXED");
       notify(CmdFetchInboxNotification(_account, messages));
       _log.fine('indexed ${messages.length} messages');
   }

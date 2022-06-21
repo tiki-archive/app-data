@@ -3,6 +3,7 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -31,6 +32,7 @@ class TikiData {
   late final CmdMgrService _cmdMgrService;
   late final GraphStrategyEmail _graphStrategyEmail;
   late final DecisionStrategySpam _decisionStrategySpam;
+  late final Amplitude? _amplitude;
 
   Future<TikiData> init(
       {required Database database,
@@ -39,14 +41,16 @@ class TikiData {
       required TikiLocalGraph localGraph,
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
       String? Function()? accessToken,
-      Httpp? httpp}) async {
+      Httpp? httpp,
+      Amplitude? amplitude}) async {
+    _amplitude = amplitude;
     _enrichService =
         EnrichService(httpp: httpp, refresh: refresh, accessToken: accessToken);
     _companyService = await CompanyService(_enrichService).open(database);
     _accountService = await AccountService().open(database);
     _emailService = await EmailService().open(database);
     _cmdMgrService = await CmdMgrService(database).init();
-    _graphStrategyEmail = await GraphStrategyEmail(localGraph);
+    _graphStrategyEmail = await GraphStrategyEmail(localGraph, amplitude: _amplitude);
     _decisionStrategySpam = DecisionStrategySpam(
         decision, spamCards, _emailService, _accountService);
 
@@ -57,9 +61,15 @@ class TikiData {
         _cmdMgrService,
         _companyService,
         _graphStrategyEmail,
+        amplitude: _amplitude,
         httpp: httpp);
 
-    List<AccountModel> accounts = await _accountService.getAll();
+    List<AccountModel> accounts = await _accountService.getConnected();
+    if(_amplitude != null){
+      _amplitude!.logEvent("CONNECTED_ACCOUNTS", eventProperties: {
+        "count" : accounts.length
+      });
+    }
     for(AccountModel account in accounts) {
       if(!account.shouldReconnect!)
       _screenService.addAccount(account);
