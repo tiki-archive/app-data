@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:tiki_localgraph/tiki_localgraph.dart';
 import 'package:tiki_localgraph/tiki_localgraph_edge.dart';
 import 'package:tiki_localgraph/tiki_localgraph_vertex.dart';
@@ -15,7 +16,9 @@ import '../email/msg/email_msg_model.dart';
 import 'graph_strategy.dart';
 
 class GraphStrategyEmail extends GraphStrategy {
-  GraphStrategyEmail(TikiLocalGraph localGraph) : super(localGraph);
+  Amplitude? amplitude;
+
+  GraphStrategyEmail(TikiLocalGraph localGraph, {this.amplitude}) : super(localGraph);
 
   Future<List<String>> write(List<EmailMsgModel> emails) {
     if (emails.length > 0)
@@ -51,7 +54,11 @@ class GraphStrategyEmail extends GraphStrategy {
                 email.sender!.company!.domain!)));
       }
     });
-    // TODO send edges.length NUMBER OF CREATED SIGNALS
+    if(amplitude != null){
+      amplitude!.logEvent(" CREATED_SIGNALS", eventProperties: {
+        "count" : edges.length
+      });
+    }
     return edges;
   }
 

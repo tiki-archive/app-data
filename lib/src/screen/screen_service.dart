@@ -12,9 +12,7 @@ import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../cmd/cmd_fetch/cmd_fetch_inbox.dart';
-import '../cmd/cmd_fetch/cmd_fetch_inbox_notification.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg.dart';
-import '../cmd/cmd_fetch/cmd_fetch_msg_notification.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
 import '../cmd/cmd_mgr/cmd_mgr_service.dart';
@@ -138,14 +136,6 @@ class ScreenService extends ChangeNotifier {
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {
     _log.finest("received ${notif.runtimeType.toString()}");
-    switch(notif.runtimeType){
-      case CmdFetchInboxNotification :
-        // TODO notify decisionStrategySpam
-        break;
-      case CmdFetchMsgNotification :
-        // TODO notify decisionStrategySpam
-        break;
-    }
   }
 
   void _sendConnectedAccounts() {
