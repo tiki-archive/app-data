@@ -24,17 +24,13 @@ dependencies:
   tiki_strategy_microsoft: ^0.1.4
   tiki_spam_cards: ^0.0.10
   tiki_decision: ^0.0.12
-  tiki_localgraph: ^0.0.8
+  tiki_localgraph: ^0.0.5
   tiki_syncchain: ^0.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.1
-
-dependency_overrides:
-  tiki_decision:
-    path: ../decision
 
 false_secrets:
   - lib/src/intg/intg_strategy_google.dart
