@@ -108,7 +108,8 @@ class ScreenService extends ChangeNotifier {
         since,
         page,
         _accountService,
-        _httpp
+        _httpp,
+        _amplitude
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
@@ -128,7 +129,8 @@ class ScreenService extends ChangeNotifier {
       _companyService,
       _decisionStrategySpam,
       _graphStrategySpam,
-      _httpp
+      _httpp,
+      _amplitude
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
