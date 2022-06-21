@@ -7,8 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:amplitude_flutter/amplitude.dart';
-import 'package:flutter/foundation.dart';
 import 'package:tiki_localgraph/tiki_localgraph.dart';
 import 'package:tiki_localgraph/tiki_localgraph_edge.dart';
 import 'package:tiki_localgraph/tiki_localgraph_vertex.dart';
@@ -54,7 +52,6 @@ class GraphStrategyEmail extends GraphStrategy {
       }
     });
     // TODO send edges.length NUMBER OF CREATED SIGNALS
-    Amplitude.getInstance(kDebugMode ? "App-test" : "App").logEvent("ADDED_DATA_SIGNALS");
     return edges;
   }
 

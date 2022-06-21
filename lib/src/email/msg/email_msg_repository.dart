@@ -3,14 +3,12 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'email_msg_model.dart';
 
 class EmailMsgRepository {
   static const String _table = 'message';
-  final _log = Logger('EmailRepositoryMsg');
 
   final Database _database;
 

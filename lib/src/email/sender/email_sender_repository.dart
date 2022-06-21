@@ -3,14 +3,12 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-import 'package:logging/logging.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'email_sender_model.dart';
 
 class EmailSenderRepository {
   static const String _table = 'sender';
-  final _log = Logger('EmailRepositorySender');
 
   final Database _database;
 

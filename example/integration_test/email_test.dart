@@ -91,7 +91,7 @@ void main() {
       EmailService emailService = await EmailService().open(database);
 
       String email = Uuid().v4() + '@test.com';
-      int count = await emailService.upsertSenders([
+      await emailService.upsertSenders([
         EmailSenderModel(
             email: email,
             name: 'Test Name',
@@ -181,7 +181,7 @@ void main() {
           company: CompanyModel(domain: 'test.com'),
           created: DateTime.now(),
           modified: DateTime.now());
-      int count = await emailService.upsertSenders([sender]);
+      await emailService.upsertSenders([sender]);
       await emailService.markAsUnsubscribed(sender);
       EmailSenderModel? updated = await emailService.getSenderByEmail(email);
       expect(updated?.unsubscribed, true);
@@ -204,7 +204,7 @@ void main() {
           company: CompanyModel(domain: 'test.com'),
           created: DateTime.now(),
           modified: DateTime.now());
-      int count = await emailService.upsertSenders([sender]);
+      await emailService.upsertSenders([sender]);
       await emailService.markAsKept(sender);
       EmailSenderModel? updated = await emailService.getSenderByEmail(email);
       expect(
@@ -219,8 +219,7 @@ void main() {
 
       String email1 = Uuid().v4() + '@test.com';
       String email2 = Uuid().v4() + '@test.com';
-      String email3 = Uuid().v4() + '@test.com';
-      int count = await emailService.upsertSenders([
+      await emailService.upsertSenders([
         EmailSenderModel(
             email: email1,
             name: 'Test Name',

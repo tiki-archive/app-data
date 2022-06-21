@@ -3,6 +3,7 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -31,6 +32,7 @@ class TikiData {
   late final CmdMgrService _cmdMgrService;
   late final GraphStrategyEmail _graphStrategyEmail;
   late final DecisionStrategySpam _decisionStrategySpam;
+  late final Amplitude? _amplitude;
 
   Future<TikiData> init(
       {required Database database,
@@ -39,8 +41,9 @@ class TikiData {
       required TikiLocalGraph localGraph,
       Future<void> Function(void Function(String?)? onSuccess)? refresh,
       String? Function()? accessToken,
-      Httpp? httpp
+      Httpp? httpp,
       Amplitude? amplitude}) async {
+    _amplitude = amplitude;
     _enrichService =
         EnrichService(httpp: httpp, refresh: refresh, accessToken: accessToken);
     _companyService = await CompanyService(_enrichService).open(database);
@@ -58,10 +61,15 @@ class TikiData {
         _cmdMgrService,
         _companyService,
         _graphStrategyEmail,
+        amplitude: _amplitude,
         httpp: httpp);
 
-    List<AccountModel> accounts = await _accountService.getAll();
-    // TODO AMPLITUDE TOTAL NUMBER OF CONNECTED ACCOUNTS
+    List<AccountModel> accounts = await _accountService.getConnected();
+    if(_amplitude != null){
+      _amplitude!.logEvent("CONNECTED_ACCOUNTS", eventProperties: {
+        "count" : accounts.length
+      });
+    }
     for(AccountModel account in accounts) {
       if(!account.shouldReconnect!)
       _screenService.addAccount(account);

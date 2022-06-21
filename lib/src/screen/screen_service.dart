@@ -3,6 +3,7 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:flutter/widgets.dart';
 import 'package:httpp/httpp.dart';
 import 'package:logging/logging.dart';
@@ -43,6 +44,8 @@ class ScreenService extends ChangeNotifier {
 
   GraphStrategyEmail _graphStrategySpam;
 
+  Amplitude? _amplitude;
+
   ScreenService(
       this._accountService,
       this._fetchService,
@@ -51,8 +54,8 @@ class ScreenService extends ChangeNotifier {
       this._cmdMgrService,
       this._companyService,
       this._graphStrategySpam,
-      {Httpp? httpp})
-      : _httpp = httpp {
+      {Httpp? httpp, Amplitude? amplitude})
+      : _amplitude = amplitude, _httpp = httpp {
     controller = ScreenController(this);
     presenter = ScreenPresenter(this);
   }
@@ -72,6 +75,7 @@ class ScreenService extends ChangeNotifier {
       _model.accounts.add(account);
     }
     notifyListeners();
+    _sendConnectedAccounts();
     _decisionStrategySpam.setLinked(true);
     _decisionStrategySpam.loadFromDb(account);
     _fetchInbox(account);
@@ -88,6 +92,7 @@ class ScreenService extends ChangeNotifier {
       account.shouldReconnect = true;
       await _accountService.save(account);
       _decisionStrategySpam.clear();
+      _sendConnectedAccounts();
     }catch (e){
       _log.warning("Account $username of ${type.runtimeType} not found");
     }
@@ -138,6 +143,14 @@ class ScreenService extends ChangeNotifier {
       case CmdFetchMsgNotification :
         // TODO notify decisionStrategySpam
         break;
+    }
+  }
+
+  void _sendConnectedAccounts() {
+    if(_amplitude != null){
+      _amplitude!.logEvent("CONNECTED_ACCOUNTS", eventProperties: {
+        "count" : accounts.length
+      });
     }
   }
 
