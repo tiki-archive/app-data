@@ -37,10 +37,7 @@ dependency_overrides:
       url: https://www.github.com/davidmartos96/sqflite_sqlcipher.git
       path: sqflite
       ref: fmdb_override
-  tiki_decision:
-    path: ../../decision
-  tiki_style:
-    path: ../../style
+  crypto: ^3.0.1
 
 flutter:
   uses-material-design: true
