@@ -1,6 +1,6 @@
 name: tiki_data
 description: flutter sdk for data
-version: 0.0.9
+version: 0.0.10
 homepage: https://mytiki.com
 repository: https://github.com/tiki/data
 issue_tracker: https://github.com/tiki/data/issues
@@ -15,16 +15,17 @@ dependencies:
   amplitude_flutter: ^3.10.0
   logging: ^1.0.2
   provider: ^6.0.3
-  tiki_style: ^0.0.19
   sqflite_sqlcipher: ^2.1.1
   httpp: ^0.0.4
   pointycastle: ^3.6.0
-  tiki_strategy_google: ^0.1.3
-  tiki_strategy_microsoft: ^0.1.3
+
+  tiki_style: ^0.0.20
+  tiki_strategy_google: ^0.1.4
+  tiki_strategy_microsoft: ^0.1.4
   tiki_spam_cards: ^0.0.10
-  tiki_decision: ^0.0.11
-  tiki_localgraph: ^0.0.7
-  tiki_syncchain: ^0.0.7
+  tiki_decision: ^0.0.12
+  tiki_localgraph: ^0.0.8
+  tiki_syncchain: ^0.0.8
 
 dev_dependencies:
   flutter_test:
