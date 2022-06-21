@@ -50,7 +50,7 @@ class TikiData {
     _accountService = await AccountService().open(database);
     _emailService = await EmailService().open(database);
     _cmdMgrService = await CmdMgrService(database).init();
-    _graphStrategyEmail = await GraphStrategyEmail(localGraph);
+    _graphStrategyEmail = await GraphStrategyEmail(localGraph, amplitude: _amplitude);
     _decisionStrategySpam = DecisionStrategySpam(
         decision, spamCards, _emailService, _accountService);
 
