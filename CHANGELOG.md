@@ -1,3 +1,13 @@
+## 0.0.12
+
+* fix decision cards creation
+* remove multi account UI
+* 
+
+## 0.0.11
+
+* fix missing updates
+
 ## 0.0.10
 
 * add command slice

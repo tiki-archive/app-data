@@ -90,6 +90,7 @@ class ScreenService extends ChangeNotifier {
       account.shouldReconnect = true;
       await _accountService.save(account);
       _decisionStrategySpam.clear();
+      _decisionStrategySpam.setLinked(false);
       _sendConnectedAccounts();
     }catch (e){
       _log.warning("Account $username of ${type.runtimeType} not found");
@@ -98,6 +99,7 @@ class ScreenService extends ChangeNotifier {
   }
 
   Future<void> _fetchInbox(AccountModel account) async {
+    _decisionStrategySpam.setPending(true);
     String? page = await _fetchService.getPage(account);
     DateTime? since = await _cmdMgrService.getLastRun(CmdFetchInbox.generateId(account));
     CmdFetchInbox cmd = CmdFetchInbox(
@@ -119,6 +121,7 @@ class ScreenService extends ChangeNotifier {
   }
 
   Future<void> _fetchMessages(AccountModel account) async{
+    _decisionStrategySpam.setPending(true);
     CmdFetchMsg cmd = CmdFetchMsg(
       account,
       _fetchService,
@@ -136,6 +139,8 @@ class ScreenService extends ChangeNotifier {
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {
     _log.finest("received ${notif.runtimeType.toString()}");
+    if(notif is CmdMgrCmdNotifFinish)
+      _decisionStrategySpam.setPending(false);
   }
 
   void _sendConnectedAccounts() {
