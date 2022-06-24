@@ -2,7 +2,6 @@
 
 * fix decision cards creation
 * remove multi account UI
-* 
 
 ## 0.0.11
 
