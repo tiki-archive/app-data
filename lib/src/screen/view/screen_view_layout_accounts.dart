@@ -17,10 +17,28 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ScreenService service = Provider.of<ScreenService>(context);
+    AccountModel? account = service.accounts.isEmpty ? null : service.accounts.first;
     return Column(children: [
-        ..._getConnectedAccounts(service),
-        ..._getConnectionWidgets(service)
-
+      account == null || account.provider == AccountModelProvider.google
+          ? Container(
+          margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
+          child: service.intgContext.widget(
+              account: account,
+              provider: AccountModelProvider.google,
+              onLink: (account) => service.controller.saveAccount(account),
+              onUnlink: (email) => service.controller
+                  .removeAccount(AccountModelProvider.google, email)))
+          : Container(),
+      account == null || account.provider == AccountModelProvider.microsoft
+          ? Container(
+          margin: EdgeInsets.only(top: SizeProvider.instance.height(15)),
+          child: service.intgContext.widget(
+              account: account,
+              provider: AccountModelProvider.microsoft,
+              onLink: (account) => service.controller.saveAccount(account),
+              onUnlink: (email) => service.controller
+                  .removeAccount(AccountModelProvider.microsoft, email)))
+          : Container(),
     ]);
   }
 

@@ -132,4 +132,8 @@ ${account.displayName ?? ''}<br />
       await _emailService.markAsKept(sender);
     }
   }
+
+  void setPending(bool bool) {
+
+  }
 }
