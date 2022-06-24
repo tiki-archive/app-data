@@ -128,11 +128,6 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   Future<void> _processFetchedMessages() async {
     _log.fine('Fetched ${_fetched.length} messages');
-    if(_amplitude != null){
-      _amplitude!.logEvent("EMAILS_FETCHED", eventProperties: {
-        "count" : _fetched.length
-      });
-    }
     Map<String, EmailSenderModel> senders = {};
     _save.where((msg) => msg.sender != null && msg.sender?.email != null)
         .forEach((msg) => senders[msg.sender!.email!] = msg.sender!);
@@ -140,6 +135,11 @@ class CmdFetchMsg extends CmdMgrCmd {
     await _saveMessages(_save);
     await _saveCompanies(senders);
     await _fetchService.deleteParts(_fetched, _account);
+    if(_amplitude != null){
+      _amplitude!.logEvent("EMAILS_FETCHED", eventProperties: {
+        "count" : _fetched.length
+      });
+    }
     _decisionStrategySpam.addSpamCards(_account, _save);
     _graphStrategyEmail.write(_save);
     if(status == CmdMgrCmdStatus.running) _getPartsAndFetchMsg();

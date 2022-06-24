@@ -55,7 +55,7 @@ class GraphStrategyEmail extends GraphStrategy {
       }
     });
     if(amplitude != null){
-      amplitude!.logEvent(" CREATED_SIGNALS", eventProperties: {
+      amplitude!.logEvent("CREATED_SIGNALS", eventProperties: {
         "count" : edges.length
       });
     }
