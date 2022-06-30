@@ -1,3 +1,9 @@
+## 0.0.13
+
+* fix company service unique constraint error
+* improve enrichapi logs
+* update tiki decision to 0.0.13
+
 ## 0.0.12
 
 * fix decision cards creation

@@ -37,11 +37,23 @@ class EnrichApiModel<T extends EnrichApiData> {
     }
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         'status': status,
         'code': code,
         'data': data?.toJson(),
         'page': page?.toJson(),
         'messages': messages?.map((e) => e.toJson()).toList()
       };
+
+  @override
+  String toString() =>
+      '''EnrichApiModel
+status: $status,
+code: $code,
+data: ${data?.toJson()},
+page: ${page?.toJson()},
+messages: ${messages?.map((e) => e.toJson())}
+''';
+
 }

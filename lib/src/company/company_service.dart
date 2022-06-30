@@ -28,43 +28,39 @@ class CompanyService {
   Future<void> upsert(String domain,
       {Function(CompanyModel?)? onComplete}) async {
     if (domain.isNotEmpty) {
-      CompanyModel? local = await _repository.getByDomain(domain);
-      if (local == null) {
-        await _enrichService.getCompany(
-            domain: domain,
-            onSuccess: (company) async {
-              CompanyModel saved = await _repository.insert(CompanyModel(
+      CompanyModel? local;
+      CompanyModel? saved;
+      await _enrichService.getCompany(
+          domain: domain,
+          onSuccess: (company) async {
+            local = await _repository.getByDomain(domain);
+            if (local == null) {
+              saved = await _repository.insert(CompanyModel(
                 domain: domain,
                 logo: company?.about?.logo,
                 securityScore: company?.score?.securityScore,
                 breachScore: company?.score?.breachScore,
                 sensitivityScore: company?.score?.sensitivityScore,
               ));
-              if (onComplete != null) onComplete(saved);
-            },
-            onError: (error) => _log.warning(error));
-      } else if (local.modified == null ||
-          local.securityScore == null ||
-          local.modified!
-              .isBefore(DateTime.now().subtract(const Duration(days: 30)))) {
-        await _enrichService.getCompany(
-            domain: domain,
-            onSuccess: (company) async {
-              CompanyModel saved = await _repository.update(CompanyModel(
-                  companyId: local.companyId,
+            } else if (
+             local!.modified == null || local!.securityScore == null ||
+             local!.modified!.isBefore(DateTime.now()
+                 .subtract(const Duration(days: 30)))) {
+              saved = await _repository.update(CompanyModel(
+                  companyId: local!.companyId,
                   domain: domain,
                   logo: company?.about?.logo,
                   securityScore: company?.score?.securityScore,
                   breachScore: company?.score?.breachScore,
                   sensitivityScore: company?.score?.sensitivityScore,
-                  created: local.created,
-                  modified: local.modified));
-              if (onComplete != null) onComplete(saved);
-            },
-            onError: (error) => _log.warning(error));
-      } else if (onComplete != null) {
-        onComplete(local);
-      }
+                  created: local!.created));
+            }
+          },
+          onError: (error) async {
+            _log.warning(error);
+            saved = await _repository.insert(CompanyModel(domain: domain));
+          });
+      if(onComplete != null) onComplete(saved);
     }
   }
 }
