@@ -29,34 +29,53 @@ class GraphStrategyEmail extends GraphStrategy {
 
   List<TikiLocalGraphEdge> _edges(List<EmailMsgModel> emails) {
     List<TikiLocalGraphEdge> edges = [];
+
+    num actionSignals = 0;
+    num dateSignals = 0;
+    num subjectSignals = 0;
+    num companySignals = 0;
+
     emails.forEach((email) {
       String occ = _occurrence(email);
       edges.add(TikiLocalGraphEdge(
           TikiLocalGraphVertex(GraphStrategy.edgeTypeOccurrence, occ),
           TikiLocalGraphVertex(
               GraphStrategy.edgeTypeAction, 'email_received')));
+
+      actionSignals++;
+
       if (email.receivedDate != null) {
         edges.add(TikiLocalGraphEdge(
             TikiLocalGraphVertex(GraphStrategy.edgeTypeOccurrence, occ),
             TikiLocalGraphVertex(
                 GraphStrategy.edgeTypeDate, _date(email.receivedDate!))));
+
+        dateSignals++;
       }
       if (email.subject != null) {
         edges.add(TikiLocalGraphEdge(
             TikiLocalGraphVertex(GraphStrategy.edgeTypeOccurrence, occ),
             TikiLocalGraphVertex(
                 GraphStrategy.edgeTypeSubject, email.subject!)));
+
+        subjectSignals++;
       }
       if (email.sender?.company?.domain != null) {
         edges.add(TikiLocalGraphEdge(
             TikiLocalGraphVertex(GraphStrategy.edgeTypeOccurrence, occ),
             TikiLocalGraphVertex(GraphStrategy.edgeTypeCompany,
                 email.sender!.company!.domain!)));
+
+        companySignals++;
       }
     });
     if(amplitude != null){
       amplitude!.logEvent("CREATED_SIGNALS", eventProperties: {
-        "count" : edges.length
+        "count" : edges.length,
+        "actionSignals": actionSignals,
+        "dateSignals": dateSignals,
+        "subjectSignals": subjectSignals,
+        "companySignals": companySignals,
       });
     }
     return edges;
