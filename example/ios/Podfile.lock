@@ -1,0 +1,107 @@
+PODS:
+  - Amplitude (8.5.0)
+  - amplitude_flutter (0.0.1):
+    - Amplitude (= 8.5.0)
+    - Flutter
+  - AppAuth (1.5.0):
+    - AppAuth/Core (= 1.5.0)
+    - AppAuth/ExternalUserAgent (= 1.5.0)
+  - AppAuth/Core (1.5.0)
+  - AppAuth/ExternalUserAgent (1.5.0):
+    - AppAuth/Core
+  - Flutter (1.0.0)
+  - flutter_appauth (0.0.1):
+    - AppAuth (= 1.5.0)
+    - Flutter
+  - flutter_secure_storage (3.3.1):
+    - Flutter
+  - FMDB/SQLCipher (2.7.5):
+    - SQLCipher
+  - integration_test (0.0.1):
+    - Flutter
+  - path_provider_ios (0.0.1):
+    - Flutter
+  - permission_handler_apple (9.0.4):
+    - Flutter
+  - share_plus (0.0.1):
+    - Flutter
+  - sqflite (0.0.2):
+    - Flutter
+    - FMDB/SQLCipher (>= 2.7.5)
+    - SQLCipher (~> 4.4.0)
+  - sqflite_sqlcipher (0.0.1):
+    - Flutter
+    - FMDB/SQLCipher (~> 2.7.5)
+    - SQLCipher (= 4.4.2)
+  - SQLCipher (4.4.2):
+    - SQLCipher/standard (= 4.4.2)
+  - SQLCipher/common (4.4.2)
+  - SQLCipher/standard (4.4.2):
+    - SQLCipher/common
+  - url_launcher_ios (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - amplitude_flutter (from `.symlinks/plugins/amplitude_flutter/ios`)
+  - Flutter (from `Flutter`)
+  - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
+  - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
+  - sqflite (from `.symlinks/plugins/sqflite/ios`)
+  - sqflite_sqlcipher (from `.symlinks/plugins/sqflite_sqlcipher/ios`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+
+SPEC REPOS:
+  trunk:
+    - Amplitude
+    - AppAuth
+    - FMDB
+    - SQLCipher
+
+EXTERNAL SOURCES:
+  amplitude_flutter:
+    :path: ".symlinks/plugins/amplitude_flutter/ios"
+  Flutter:
+    :path: Flutter
+  flutter_appauth:
+    :path: ".symlinks/plugins/flutter_appauth/ios"
+  flutter_secure_storage:
+    :path: ".symlinks/plugins/flutter_secure_storage/ios"
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+  path_provider_ios:
+    :path: ".symlinks/plugins/path_provider_ios/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
+  sqflite:
+    :path: ".symlinks/plugins/sqflite/ios"
+  sqflite_sqlcipher:
+    :path: ".symlinks/plugins/sqflite_sqlcipher/ios"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
+
+SPEC CHECKSUMS:
+  Amplitude: ef9ed339ddd33c9183edf63fa4bbaa86cf873321
+  amplitude_flutter: 8ddb231989e68ed8c005c838d7fc59edbca09833
+  AppAuth: 80317d99ac7ff2801a2f18ff86b48cd315ed465d
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  flutter_appauth: 2c4a407e6d649df3f2308375fb891822dcff291b
+  flutter_secure_storage: 7953c38a04c3fdbb00571bcd87d8e3b5ceb9daec
+  FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
+  integration_test: a1e7d09bd98eca2fc37aefd79d4f41ad37bdbbe5
+  path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
+  permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
+  share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
+  sqflite: c0667567fd3e682beb9509976c08bc2325429aab
+  sqflite_sqlcipher: 70eb7fd8d4f0b0352d0bde5cf345b810737f54bb
+  SQLCipher: 1ab0b9486a77d141e72e92ff30681926ed79c07a
+  url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
+
+PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
+
+COCOAPODS: 1.11.2
