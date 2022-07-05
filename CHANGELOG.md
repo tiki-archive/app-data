@@ -1,3 +1,7 @@
+## 0.0.14
+
+* improve created_signals event
+
 ## 0.0.13
 
 * fix company service unique constraint error
