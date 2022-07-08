@@ -34,12 +34,12 @@ class CompanyService {
           domain: domain,
           onSuccess: (company) async {
 
-            if (company?.about?.domain != null) domain = company!.about!.domain!;
+            domain = company?.about?.domain != null ? company!.about!.domain! : domain;
 
             local = await _repository.getByDomain(domain);
             if (local == null) {
               saved = await _repository.insert(CompanyModel(
-                domain: company?.about?.domain,
+                domain: domain,
                 logo: company?.about?.logo,
                 securityScore: company?.score?.securityScore,
                 breachScore: company?.score?.breachScore,
@@ -51,7 +51,7 @@ class CompanyService {
                  .subtract(const Duration(days: 30)))) {
               saved = await _repository.update(CompanyModel(
                   companyId: local!.companyId,
-                  domain: company?.about?.domain,
+                  domain: domain,
                   logo: company?.about?.logo,
                   securityScore: company?.score?.securityScore,
                   breachScore: company?.score?.breachScore,
