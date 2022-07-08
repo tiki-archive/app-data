@@ -37,8 +37,8 @@ void main() async {
   Logger.root.onRecord.listen((record) =>
       print('${record.level.name} [${record.loggerName}] ${record.message}'));
 
-  Amplitude amplitude = Amplitude.getInstance(instanceName: "App-test");
-  await amplitude.init("6f52993a138d9209786c76a03c4e25cf");
+  Amplitude amplitude = Amplitude.getInstance(instanceName: "Develop");
+  await amplitude.init("afba707e002643a678747221206c9605");
   await amplitude.enableCoppaControl();
   await amplitude.setUserId(null);
   await amplitude.trackingSessionEvents(true);

@@ -1,6 +1,6 @@
 name: tiki_data
 description: flutter sdk for data
-version: 0.0.14
+version: 0.0.15
 homepage: https://mytiki.com
 repository: https://github.com/tiki/data
 issue_tracker: https://github.com/tiki/data/issues
@@ -20,8 +20,8 @@ dependencies:
   pointycastle: ^3.6.0
 
   tiki_style: ^0.0.20
-  tiki_strategy_google: ^0.1.5
-  tiki_strategy_microsoft: ^0.1.5
+  tiki_strategy_google: ^0.1.8
+  tiki_strategy_microsoft: ^0.1.8
   tiki_spam_cards: ^0.0.10
   tiki_decision: ^0.0.13
   tiki_localgraph: ^0.0.7
