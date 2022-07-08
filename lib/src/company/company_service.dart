@@ -33,10 +33,13 @@ class CompanyService {
       await _enrichService.getCompany(
           domain: domain,
           onSuccess: (company) async {
+
+            if (company?.about?.domain != null) domain = company!.about!.domain!;
+
             local = await _repository.getByDomain(domain);
             if (local == null) {
               saved = await _repository.insert(CompanyModel(
-                domain: domain,
+                domain: company?.about?.domain,
                 logo: company?.about?.logo,
                 securityScore: company?.score?.securityScore,
                 breachScore: company?.score?.breachScore,
@@ -48,7 +51,7 @@ class CompanyService {
                  .subtract(const Duration(days: 30)))) {
               saved = await _repository.update(CompanyModel(
                   companyId: local!.companyId,
-                  domain: domain,
+                  domain: company?.about?.domain,
                   logo: company?.about?.logo,
                   securityScore: company?.score?.securityScore,
                   breachScore: company?.score?.breachScore,
