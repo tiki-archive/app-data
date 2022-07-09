@@ -1,3 +1,9 @@
+## 0.0.15
+
+* set domain name in repository to be one returned from big picture
+* strategy_microsoft 0.0.17 
+* strategy_google 0.0.16
+
 ## 0.0.14
 
 * improve created_signals event

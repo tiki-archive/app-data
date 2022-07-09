@@ -33,6 +33,9 @@ class CompanyService {
       await _enrichService.getCompany(
           domain: domain,
           onSuccess: (company) async {
+
+            domain = company?.about?.domain != null ? company!.about!.domain! : domain;
+
             local = await _repository.getByDomain(domain);
             if (local == null) {
               saved = await _repository.insert(CompanyModel(

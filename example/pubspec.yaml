@@ -19,7 +19,7 @@ dependencies:
   tiki_spam_cards: ^0.0.10
   tiki_decision: ^0.0.11
   tiki_wallet: ^0.0.22
-  httpp: ^0.0.4
+  httpp: ^0.0.6
   tiki_localgraph: ^0.0.5
 
 dev_dependencies:

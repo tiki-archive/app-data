@@ -119,8 +119,7 @@ class CmdFetchMsg extends CmdMgrCmd {
   }
 
   void _onMessageFetched(EmailMsgModel message){
-    if (message.toEmail == _account.email! &&
-        message.sender?.unsubscribeMailTo != null) _save.add(message);
+    if (message.toEmail == _account.email! && message.sender?.unsubscribeMailTo != null) _save.add(message);
     _fetched.add(message);
     _log.fine('Fetched ${message.messageId}.');
     notify(CmdFetchMsgNotification(_account, _save, _fetched, _total));
@@ -128,6 +127,8 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   Future<void> _processFetchedMessages() async {
     _log.fine('Fetched ${_fetched.length} messages');
+    _log.fine('Proceeding to save ${_save.length} relevant messages');
+
     Map<String, EmailSenderModel> senders = {};
     _save.where((msg) => msg.sender != null && msg.sender?.email != null)
         .forEach((msg) => senders[msg.sender!.email!] = msg.sender!);
@@ -135,11 +136,12 @@ class CmdFetchMsg extends CmdMgrCmd {
     await _saveMessages(_save);
     await _saveCompanies(senders);
     await _fetchService.deleteParts(_fetched, _account);
-    if(_amplitude != null){
-      _amplitude!.logEvent("EMAILS_FETCHED", eventProperties: {
-        "count" : _fetched.length
-      });
-    }
+
+    _amplitude?.logEvent("EMAILS_FETCHED", eventProperties: {
+      "count" : _fetched.length,
+      "saved" : _save.length
+    });
+
     _decisionStrategySpam.addSpamCards(_account, _save);
     _graphStrategyEmail.write(_save);
     if(status == CmdMgrCmdStatus.running) _getPartsAndFetchMsg();
