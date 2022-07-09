@@ -16,12 +16,12 @@ dependencies:
   logging: ^1.0.2
   provider: ^6.0.3
   sqflite_sqlcipher: ^2.1.1
-  httpp: ^0.0.4
+  httpp: ^0.0.6
   pointycastle: ^3.6.0
 
   tiki_style: ^0.0.20
-  tiki_strategy_google: ^0.1.8
-  tiki_strategy_microsoft: ^0.1.8
+  tiki_strategy_google: ^0.1.7
+  tiki_strategy_microsoft: ^0.1.6
   tiki_spam_cards: ^0.0.10
   tiki_decision: ^0.0.13
   tiki_localgraph: ^0.0.7
