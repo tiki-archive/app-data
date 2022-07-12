@@ -1,3 +1,7 @@
+## 0.0.16
+
+* update strategy_microsoft and strategy_google dependencies
+
 ## 0.0.15
 
 * set domain name in repository to be one returned from big picture
