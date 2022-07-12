@@ -13,8 +13,10 @@ import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../cmd/cmd_fetch/cmd_fetch_inbox.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg.dart';
+import '../cmd/cmd_fetch/cmd_fetch_msg_notification.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd_status.dart';
 import '../cmd/cmd_mgr/cmd_mgr_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
@@ -24,6 +26,7 @@ import '../graph/graph_strategy_email.dart';
 import '../intg/intg_context.dart';
 import 'screen_controller.dart';
 import 'screen_model.dart';
+import 'screen_model_fetch_progress.dart';
 import 'screen_presenter.dart';
 
 class ScreenService extends ChangeNotifier {
@@ -98,6 +101,10 @@ class ScreenService extends ChangeNotifier {
     notifyListeners();
   }
 
+  FetchProgress? getFetchProgress(AccountModel account) {
+    return _model.activeFetches[account];
+  }
+
   Future<void> _fetchInbox(AccountModel account) async {
     _decisionStrategySpam.setPending(true);
     String? page = await _fetchService.getPage(account);
@@ -135,6 +142,14 @@ class ScreenService extends ChangeNotifier {
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
+
+    cmd.listeners.add((notif) async {
+      if(notif is CmdMgrCmdNotifFinish){
+        _model.activeFetches.remove(account);
+      } else if (notif is CmdFetchMsgNotification) {
+        _model.activeFetches[account] = FetchProgress(notif.fetch.length, notif.total);
+      }
+    });
   }
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {

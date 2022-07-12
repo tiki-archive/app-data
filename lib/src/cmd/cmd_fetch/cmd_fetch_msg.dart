@@ -47,9 +47,8 @@ class CmdFetchMsg extends CmdMgrCmd {
       DecisionStrategySpam this._decisionStrategySpam,
       GraphStrategyEmail this._graphStrategyEmail,
       Httpp? httpp,
-      Amplitude? amplitude
-  ) : _amplitude = amplitude,
-      _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
+      Amplitude? this._amplitude
+  ) : _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
 
   @override
   String get id => generateId(_account);

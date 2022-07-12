@@ -16,6 +16,7 @@ import 'fetch_repository_page.dart';
 import 'fetch_repository_part.dart';
 
 class FetchService {
+
   final _log = Logger('FetchService');
   late final FetchRepositoryPart _partRepository;
   late final FetchRepositoryPage _pageRepository;
@@ -36,6 +37,7 @@ class FetchService {
         (json) => EmailMsgModel.fromMap(json),
         max: 100);
 
+  // Counts how many messages there are
   Future<int> countParts(AccountModel account) async =>
       await _partRepository.countByAccountAndApi(
           account.accountId!,
