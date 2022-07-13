@@ -21,10 +21,12 @@ class IntgContextEmail extends IntgContext {
   Future<void> getInbox(
           {required AccountModel account,
           DateTime? since,
+          String? page,
           required Function(List<EmailMsgModel> messages, {String? page}) onResult,
           required Function() onFinish}) =>
       _strategy(account.provider)!.getInbox(
           account: account,
+          page: page,
           since: since,
           onResult: onResult,
           onFinish: onFinish);

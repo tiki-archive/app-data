@@ -1,8 +1,14 @@
+## 0.0.16
+
+* start indexing from last indexed page
+* strategy_microsoft 0.1.10
+* strategy_google 0.1.10
+
 ## 0.0.15
 
 * set domain name in repository to be one returned from big picture
-* strategy_microsoft 0.0.17 
-* strategy_google 0.0.16
+* strategy_microsoft 0.1.7
+* strategy_google 0.1.6
 
 ## 0.0.14
 
