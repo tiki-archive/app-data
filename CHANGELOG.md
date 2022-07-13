@@ -1,8 +1,12 @@
-## 0.0.16
+## 0.0.17
 
 * start indexing from last indexed page
 * strategy_microsoft 0.1.10
 * strategy_google 0.1.10
+
+## 0.0.16
+
+* update dependencies
 
 ## 0.0.15
 
