@@ -20,9 +20,11 @@ class IntgStrategyGoogleEmail extends IntgStrategyGoogle
   Future<void> getInbox(
           {required AccountModel account,
           DateTime? since,
+          String? page,
           required Function(List<EmailMsgModel> messages, {String? page}) onResult,
           required Function() onFinish}) =>
       construct(account: account).fetchInbox(
+          page: page,
           onResult: (msgIdList, {page}) => onResult(msgIdList
               .map((msgId) => EmailMsgModel(extMessageId: msgId))
               .toList(), page: page),
