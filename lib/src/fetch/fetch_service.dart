@@ -42,7 +42,6 @@ class FetchService {
         (json) => EmailMsgModel.fromMap(json),
         max: 100);
 
-  // Counts how many messages there are
   Future<int> countParts(AccountModel account) async =>
       await _partRepository.countByAccountAndApi(
           account.accountId!,
@@ -98,14 +97,10 @@ class FetchService {
           )
       );
 
-  Future<void> incrementStatus(AccountModel account, {int? amount_fetched, int? total}) async =>
-      await _statusRepository.upsert(
-          FetchModelStatus(
-              account: account,
-              api: account.emailApi,
-              amount_fetched: amount_fetched,
-              total_to_fetch: total
-          )
+  Future<void> incrementStatus(AccountModel account, {int? amount_indexed_change, int? amount_fetched_change}) async {
+      await _statusRepository.incrementValues(
+          account, amount_indexed_change: amount_indexed_change, amount_fetched_change: amount_fetched_change
       );
+  }
 
 }

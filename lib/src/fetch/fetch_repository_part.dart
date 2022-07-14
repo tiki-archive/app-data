@@ -11,6 +11,9 @@ import 'fetch_api_email_enum.dart';
 import 'fetch_model_part.dart';
 
 class FetchRepositoryPart {
+
+  // Repository of messages which have been indexed, but not yet fetched
+
   static const String _table = 'data_fetch_part';
 
   final Database _database;

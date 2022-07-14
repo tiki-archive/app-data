@@ -26,7 +26,6 @@ import '../graph/graph_strategy_email.dart';
 import '../intg/intg_context.dart';
 import 'screen_controller.dart';
 import 'screen_model.dart';
-import 'screen_model_fetch_progress.dart';
 import 'screen_presenter.dart';
 
 class ScreenService extends ChangeNotifier {
@@ -101,10 +100,6 @@ class ScreenService extends ChangeNotifier {
     notifyListeners();
   }
 
-  FetchProgress? getFetchProgress(AccountModel account) {
-    return _model.activeFetches[account];
-  }
-
   Future<void> _fetchInbox(AccountModel account) async {
     _decisionStrategySpam.setPending(true);
     String? page = await _fetchService.getPage(account);
@@ -142,14 +137,6 @@ class ScreenService extends ChangeNotifier {
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
-
-    cmd.listeners.add((notif) async {
-      if(notif is CmdMgrCmdNotifFinish){
-        _model.activeFetches.remove(account);
-      } else if (notif is CmdFetchMsgNotification) {
-        _model.activeFetches[account] = FetchProgress(notif.fetch.length, notif.total);
-      }
-    });
   }
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {

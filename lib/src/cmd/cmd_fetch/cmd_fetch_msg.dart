@@ -127,7 +127,7 @@ class CmdFetchMsg extends CmdMgrCmd {
   }
 
   Future<void> _processFetchedMessages() async {
-    _log.fine('Fetched ${_fetched.length} messages');
+    _log.fine('Fetched ${_fetched.length} processed messages');
     _log.fine('Proceeding to save ${_save.length} relevant messages');
 
     Map<String, EmailSenderModel> senders = {};
@@ -137,30 +137,20 @@ class CmdFetchMsg extends CmdMgrCmd {
     await _saveMessages(_save);
     await _saveCompanies(senders);
 
-    _log.fine('deleting parts');
 
     await _fetchService.deleteParts(_fetched, _account);
 
+    _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
 
-    _log.fine('gettting current status');
+    try {
+      _amplitude?.logEvent("EMAILS_FETCHED", eventProperties: {
+        "count" : _fetched.length,
+        "saved" : _save.length
+      });
+    } catch (e) {
+      _log.severe(e);
+    }
 
-    FetchModelStatus<EmailMsgModel>? status = await _fetchService.getStatus(_account);
-    int currentAmount = status?.amount_fetched == null ? 0 : status!.amount_fetched!;
-    int totalAmount = status?.amount_indexed == null ? 0 : status!.amount_indexed!;
-
-    _log.info("CURRENT AMOUNT SAVED: ${currentAmount}/${totalAmount}");
-
-    _log.info("Adding ${_fetched.length}");
-
-    await _fetchService.saveStatus(_account, amount_fetched: (currentAmount + _fetched.length));
-
-    currentAmount = (await _fetchService.getStatus(_account))!.amount_fetched!;
-    _log.info("NEW CURRENT AMOUNT SAVED...: ${currentAmount}");
-
-    _amplitude?.logEvent("EMAILS_FETCHED", eventProperties: {
-      "count" : _fetched.length,
-      "saved" : _save.length
-    });
 
     _decisionStrategySpam.addSpamCards(_account, _save);
     _graphStrategyEmail.write(_save);

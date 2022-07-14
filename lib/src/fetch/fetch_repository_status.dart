@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+import '../account/account_model.dart';
 import 'fetch_api_email_enum.dart';
 import 'fetch_model_status.dart';
 
@@ -55,6 +56,22 @@ class FetchRepositoryStatus {
     return id;
   }
 
+  Future<int> incrementValues(AccountModel accountModel, {int? amount_indexed_change, int? amount_fetched_change}) async {
+    int id = await _database.rawUpdate(
+      'UPDATE $_table SET '
+          'amount_indexed=IFNULL(amount_indexed, 0)+IFNULL(?2, 0), '
+          'amount_fetched=IFNULL(amount_fetched, 0)+IFNULL(?3, 0), '
+          'modified_epoch=strftime(\'%s\', \'now\') * 1000 '
+          'WHERE account_id = ?1;',
+      [
+        accountModel.accountId,
+        amount_indexed_change,
+        amount_fetched_change,
+      ],
+    );
+    return id;
+  }
+
   Future<FetchModelStatus<T>?> getByAccountAndApi<T>(int accountId,
       FetchEmailApiEnum api, T Function(Map<String, dynamic>? map) fromMap,
       {int? max}) async {
@@ -80,6 +97,7 @@ class FetchRepositoryStatus {
     List<Map<String, Object?>> rows = await _database.rawQuery(
         'SELECT status.status_id AS \'status@status_id\', '
             'status.api_enum AS \'status@api_enum\', '
+            'status.amount_indexed AS \'status@amount_indexed\', '
             'status.amount_fetched AS \'status@amount_fetched\', '
             'status.total_to_fetch AS \'status@total_to_fetch\', '
             'status.created_epoch AS \'status@created_epoch\', '

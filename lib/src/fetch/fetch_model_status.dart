@@ -40,14 +40,13 @@ class FetchModelStatus<T> {
         api = FetchEmailApiEnum.fromValue(map['api_enum']);
       }
       if (map['amount_indexed'] != null) {
-        amount_fetched = map['amount_indexed'];
+        amount_indexed = map['amount_indexed'];
       }
       if (map['amount_fetched'] != null) {
         amount_fetched = map['amount_fetched'];
       }
       if (map['total_to_fetch'] != null) {
         total_to_fetch = map['total_to_fetch'];
-
       }
       if (map['modified_epoch'] != null) {
         modified = DateTime.fromMillisecondsSinceEpoch(map['modified_epoch']);

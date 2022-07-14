@@ -39,15 +39,17 @@ class CmdFetchInbox extends CmdMgrCmd{
 
   Future<void> index() async {
 
-    int currentAmount = (await _fetchService.getStatus(_account))!.amount_fetched!;
-    _log.info("PRE INDEX AMOUNT...: ${currentAmount}");
+    if (this._since == null) {
+      // We're re-indexing from scratch, so we wipe the old status/fetch record
+      await _fetchService.saveStatus(_account, amount_indexed: 0, amount_fetched: 0, total: 0);
+
+    }
 
     await _intgContextEmail.countInbox(
         account: _account,
         since: _since,
         onResult: (amount) {
           _fetchService.saveStatus(_account, total: amount);
-          _log.fine('Saved status as ${amount} for ${_account.email}');
         },
         onFinish: () => {});
 
@@ -119,15 +121,7 @@ class CmdFetchInbox extends CmdMgrCmd{
       notify(CmdFetchInboxNotification(_account, messages));
       _log.fine('indexed ${messages.length} messages');
 
-      FetchModelStatus<EmailMsgModel>? status = await _fetchService.getStatus(_account);
-      int currentAmount = status?.amount_indexed == null ? 0 : status!.amount_indexed!;
-      int totalAmount = status?.amount_indexed == null ? 0 : status!.total_to_fetch!;
-
-      _log.info("CURRENT AMOUNT INDEXED SAVED: ${currentAmount}/${totalAmount}");
-
-      _log.info("Adding ${messages.length}");
-
-      _fetchService.saveStatus(_account, amount_indexed: (currentAmount + messages.length));
+      _fetchService.incrementStatus(_account, amount_indexed_change: messages.length);
   }
 
   Future<void> _onFinish() async {
