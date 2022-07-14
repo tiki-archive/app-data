@@ -18,6 +18,18 @@ class IntgContextEmail extends IntgContext {
   IntgContextEmail(AccountService accountService, {Httpp? httpp})
       : super(accountService, httpp: httpp);
 
+  Future<void> countInbox(
+      {required AccountModel account,
+        DateTime? since,
+        required Function(int amount) onResult,
+        required Function() onFinish}) =>
+      _strategy(account.provider)!.countInbox(
+          account: account,
+          since: since,
+          onResult: onResult,
+          onFinish: onFinish);
+
+
   Future<void> getInbox(
           {required AccountModel account,
           DateTime? since,

@@ -16,12 +16,12 @@ class FetchRepositoryPage {
   FetchRepositoryPage(this._database);
 
   Future<void> createTable() =>
-      _database.execute('CREATE TABLE IF NOT EXISTS $_table('
-          'fetch_id INTEGER PRIMARY KEY AUTOINCREMENT, '
-          'account_id INTEGER NOT NULL, '
-          'api_enum TEXT NOT NULL, '
-          'page STRING NOT NULL, '
-          'UNIQUE (account_id, api_enum));');
+    _database.execute('CREATE TABLE IF NOT EXISTS $_table('
+        'fetch_id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'account_id INTEGER NOT NULL, '
+        'api_enum TEXT NOT NULL, '
+        'page STRING NOT NULL, '
+        'UNIQUE (account_id, api_enum));');
 
   Future<FetchModelPage> upsert(FetchModelPage data) async {
     int id = await _database.rawInsert(

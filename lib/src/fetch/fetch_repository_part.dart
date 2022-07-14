@@ -18,15 +18,15 @@ class FetchRepositoryPart {
   FetchRepositoryPart(this._database);
 
   Future<void> createTable() =>
-      _database.execute('CREATE TABLE IF NOT EXISTS $_table('
-          'part_id INTEGER PRIMARY KEY AUTOINCREMENT, '
-          'ext_id TEXT NOT NULL, '
-          'account_id INTEGER NOT NULL, '
-          'api_enum TEXT NOT NULL, '
-          'obj_json TEXT, '
-          'created_epoch INTEGER NOT NULL, '
-          'modified_epoch INTEGER NOT NULL, '
-          'UNIQUE (ext_id, account_id));');
+    _database.execute('CREATE TABLE IF NOT EXISTS $_table('
+        'part_id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'ext_id TEXT NOT NULL, '
+        'account_id INTEGER NOT NULL, '
+        'api_enum TEXT NOT NULL, '
+        'obj_json TEXT, '
+        'created_epoch INTEGER NOT NULL, '
+        'modified_epoch INTEGER NOT NULL, '
+        'UNIQUE (ext_id, account_id));');
 
   Future<int> upsert<T>(List<FetchModelPart<T>> parts,
       Map<String, dynamic>? Function(T?) toMap) async {

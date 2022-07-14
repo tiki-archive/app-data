@@ -1,4 +1,5 @@
 import 'package:amplitude_flutter/amplitude.dart';
+import 'package:uuid/uuid.dart';
 
 import 'widgets/widgety.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ void main() async {
   String Function() accessToken = () => '';
 
   Httpp httpp = Httpp();
-  Database database = await openDatabase('tiki_data_test.db');
+  Database database = await openDatabase('test.db'); //await openDatabase('${Uuid().v4()}.db');
   TikiKv tikiKv = await TikiKv(database: database).init();
   TikiDecision decision = await TikiDecision(tikiKv: tikiKv).init();
 
@@ -30,8 +31,6 @@ void main() async {
 
   TikiLocalGraph localGraph = await TikiLocalGraph(chainService)
       .open(database, httpp: httpp, accessToken: accessToken);
-
-
 
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) =>
@@ -51,6 +50,8 @@ void main() async {
       httpp: httpp,
       accessToken: accessToken,
       amplitude: amplitude);
+
+
 
   runApp(MaterialApp(
     title: 'Data Example',

@@ -12,6 +12,7 @@ import '../../email/email_service.dart';
 import '../../email/msg/email_msg_model.dart';
 import '../../email/sender/email_sender_model.dart';
 import '../../fetch/fetch_model_part.dart';
+import '../../fetch/fetch_model_status.dart';
 import '../../fetch/fetch_service.dart';
 import '../../graph/graph_strategy_email.dart';
 import '../../intg/intg_context_email.dart';
@@ -118,9 +119,10 @@ class CmdFetchMsg extends CmdMgrCmd {
   }
 
   void _onMessageFetched(EmailMsgModel message){
-    if (message.toEmail == _account.email! && message.sender?.unsubscribeMailTo != null) _save.add(message);
+    if (message.toEmail?.toLowerCase() == _account.email!.toLowerCase() && message.sender?.unsubscribeMailTo != null) _save.add(message);
+
     _fetched.add(message);
-    _log.fine('Fetched ${message.messageId}.');
+    _log.fine('Fetched ${message.extMessageId}.');
     notify(CmdFetchMsgNotification(_account, _save, _fetched, _total));
   }
 
@@ -134,7 +136,26 @@ class CmdFetchMsg extends CmdMgrCmd {
     await _saveSenders(senders);
     await _saveMessages(_save);
     await _saveCompanies(senders);
+
+    _log.fine('deleting parts');
+
     await _fetchService.deleteParts(_fetched, _account);
+
+
+    _log.fine('gettting current status');
+
+    FetchModelStatus<EmailMsgModel>? status = await _fetchService.getStatus(_account);
+    int currentAmount = status?.amount_fetched == null ? 0 : status!.amount_fetched!;
+    int totalAmount = status?.amount_indexed == null ? 0 : status!.amount_indexed!;
+
+    _log.info("CURRENT AMOUNT SAVED: ${currentAmount}/${totalAmount}");
+
+    _log.info("Adding ${_fetched.length}");
+
+    await _fetchService.saveStatus(_account, amount_fetched: (currentAmount + _fetched.length));
+
+    currentAmount = (await _fetchService.getStatus(_account))!.amount_fetched!;
+    _log.info("NEW CURRENT AMOUNT SAVED...: ${currentAmount}");
 
     _amplitude?.logEvent("EMAILS_FETCHED", eventProperties: {
       "count" : _fetched.length,
