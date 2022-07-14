@@ -40,12 +40,13 @@ class DecisionStrategySpam extends DecisionStrategy {
     }
   }
 
-  void addSpamCards(AccountModel account, List<EmailMsgModel> messages) {
+  Future<void> addSpamCards(AccountModel account, List<EmailMsgModel> messages) async {
     Map<String, EmailSenderModel> senderMap = {};
     Map<String, List<EmailMsgModel>> senderMsgMap = {};
+    List<EmailSenderModel> notIgnoredSenders = await _emailService.getSendersNotIgnored();
     for (EmailMsgModel msg in messages) {
       EmailSenderModel? sender = msg.sender;
-      if (sender != null && sender.email != null) {
+      if (sender != null && sender.email != null && notIgnoredSenders.contains(sender)) {
         senderMap.putIfAbsent(sender.email!, () => sender);
         if (senderMsgMap.containsKey(sender.email!)) {
           List<EmailMsgModel> msgs = List.from(senderMsgMap[sender.email!]!)
