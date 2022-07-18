@@ -1,5 +1,10 @@
+## 0.0.18
+
+* update dependencies
+
 ## 0.0.17
 
+* check non ignored senders before adding spam cards
 * start indexing from last indexed page
 * strategy_microsoft 0.1.10
 * strategy_google 0.1.10
