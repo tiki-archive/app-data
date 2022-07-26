@@ -1,3 +1,7 @@
+## 0.0.16
+
+* strategy_google 0.1.11
+
 ## 0.0.15
 
 * set domain name in repository to be one returned from big picture
