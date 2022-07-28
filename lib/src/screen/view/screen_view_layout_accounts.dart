@@ -9,6 +9,7 @@ import 'package:tiki_style/tiki_style.dart';
 
 import '../../account/account_model.dart';
 import '../../account/account_model_provider.dart';
+import '../../cmd/cmd_mgr/cmd_mgr_service.dart';
 import '../screen_service.dart';
 
 class ScreenViewLayoutAccounts extends StatelessWidget {
@@ -22,12 +23,17 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
       account == null || account.provider == AccountModelProvider.google
           ? Container(
           margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
-          child: service.intgContext.widget(
-              account: account,
-              provider: AccountModelProvider.google,
-              onLink: (account) => service.controller.saveAccount(account),
-              onUnlink: (email) => service.controller
-                  .removeAccount(AccountModelProvider.google, email)))
+          child: Column(
+            children: [
+              service.intgContext.widget(
+                  account: account,
+                  provider: AccountModelProvider.google,
+                  onLink: (account) => service.controller.saveAccount(account),
+                  onUnlink: (email) => service.controller
+                      .removeAccount(AccountModelProvider.google, email)),
+              Text("Progress! ${service.getStatus(account)}"),
+            ],
+          ))
           : Container(),
       account == null || account.provider == AccountModelProvider.microsoft
           ? Container(
@@ -47,12 +53,16 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
     service.accounts.forEach((AccountModel account) => widgets.add(
         Container(
           margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
-          child: service.intgContext.widget(
-          account: account,
-          provider: account.provider,
-          onLink: (account) => service.controller.saveAccount(account),
-          onUnlink: (email) => service.controller
-            .removeAccount(account.provider!, email)))));
+          child:
+            Column(
+              children: [
+                service.intgContext.widget(
+                    account: account,
+                    provider: account.provider,
+                    onLink: (account) => service.controller.saveAccount(account),
+                    onUnlink: (email) => service.controller.removeAccount(account.provider!, email))
+              ],
+    ))));
     return widgets;
   }
 

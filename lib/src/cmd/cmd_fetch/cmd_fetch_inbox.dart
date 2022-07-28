@@ -20,6 +20,10 @@ class CmdFetchInbox extends CmdMgrCmd{
   final AccountModel _account;
   final DateTime? _since;
   String? _page;
+
+  num _amountIndexed = 0;
+  num _amountToIndex = 1;
+
   final IntgContextEmail _intgContextEmail;
   final FetchService _fetchService;
 
@@ -50,6 +54,9 @@ class CmdFetchInbox extends CmdMgrCmd{
         since: _since,
         onResult: (amount) {
           _fetchService.saveStatus(_account, total: amount);
+
+          _amountIndexed = 0;
+          _amountToIndex = amount;
         },
         onFinish: () => {});
 
@@ -110,6 +117,10 @@ class CmdFetchInbox extends CmdMgrCmd{
           .toList();
       await _fetchService.saveParts(parts, _account);
       _page = page;
+
+      // add the amount indexed
+      _amountIndexed += parts.length;
+
       if(_page !=null) await _fetchService.savePage(_page!, _account);
       if(_amplitude != null){
         _amplitude!.logEvent("EMAILS_INDEXED", eventProperties: {
@@ -127,7 +138,23 @@ class CmdFetchInbox extends CmdMgrCmd{
   Future<void> _onFinish() async {
       _log.fine('finished email index for ${_account.email}.');
 
+      // in case the email provider count is higher than
+      // the amount it returns indexing, we still want these
+      // two values to end up the same.
+      _amountToIndex = _amountIndexed;
+
       if(_page !=null) await _fetchService.savePage(_page!, _account);
       notify(CmdMgrCmdNotifFinish(id));
   }
+
+  @override
+  num getProgress() {
+    return _amountIndexed / _amountToIndex;
+  }
+
+  @override
+  String getProgressDescription() {
+    return "${_amountIndexed}/${_amountToIndex} emails indexed";
+  }
+
 }

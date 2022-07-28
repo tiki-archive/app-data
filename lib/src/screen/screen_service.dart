@@ -14,8 +14,10 @@ import '../account/account_service.dart';
 import '../cmd/cmd_fetch/cmd_fetch_inbox.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg_notification.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_progress_update.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_status.dart';
 import '../cmd/cmd_mgr/cmd_mgr_service.dart';
 import '../company/company_service.dart';
@@ -137,6 +139,12 @@ class ScreenService extends ChangeNotifier {
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
+    cmd.listeners.add((CmdMgrCmdNotif notif) async {
+      if(notif is CmdMgrCmdNotifProgressUpdate) {
+        _model.fetchProgress[account] = notif.progress;
+        notifyListeners();
+      }
+    });
   }
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {
@@ -151,6 +159,23 @@ class ScreenService extends ChangeNotifier {
         "count" : accounts.length
       });
     }
+  }
+
+  String getStatus(AccountModel? account) {
+    // _log.info("Fetch progress");
+    // for (CmdMgrCmd cmd in _cmdMgrService.getAll()) {
+    //   if (cmd is CmdFetchMsg) {
+    //     CmdFetchMsg fch = cmd;
+    //
+    //     _log.info("found fetch cmd w status ${fch.status.name}");
+    //
+    //     return fch.getProgressDescription() + " | ${fch.status.name}";
+    //   }
+    // }
+    if (_model.fetchProgress.containsKey(account)) {
+      return _model.fetchProgress[account]!;
+    }
+    return "Not Found";
   }
 
 }

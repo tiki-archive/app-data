@@ -9,6 +9,7 @@ import 'fetch_api_email_enum.dart';
 import 'fetch_model_page.dart';
 
 class FetchRepositoryPage {
+
   static const String _table = 'fetch_inbox_page';
 
   final Database _database;

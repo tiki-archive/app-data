@@ -19,6 +19,7 @@ import '../../intg/intg_context_email.dart';
 import '../cmd_mgr/cmd_mgr_cmd.dart';
 import '../cmd_mgr/cmd_mgr_cmd_notif_exception.dart';
 import '../cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
+import '../cmd_mgr/cmd_mgr_cmd_notif_progress_update.dart';
 import '../cmd_mgr/cmd_mgr_cmd_status.dart';
 import 'cmd_fetch_msg_notification.dart';
 
@@ -27,7 +28,9 @@ class CmdFetchMsg extends CmdMgrCmd {
   final Logger _log = Logger('CmdFetchMsg');
   final List<EmailMsgModel> _save = [];
   final List<EmailMsgModel> _fetched = [];
-  int _total = 0;
+
+  num _amountFetched = 0;
+  num _totalToFetch = 0;
 
   final FetchService _fetchService;
   final AccountModel _account;
@@ -59,7 +62,7 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   @override
   Future<void> onStart() async {
-    _total = await _fetchService.countParts(_account);
+    _totalToFetch = await _fetchService.countParts(_account);
     _getPartsAndFetchMsg();
   }
 
@@ -70,7 +73,7 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   @override
   Future<void> onResume() async {
-    _total = await _fetchService.countParts(_account);
+    _totalToFetch = await _fetchService.countParts(_account);
     _getPartsAndFetchMsg();
   }
 
@@ -86,8 +89,8 @@ class CmdFetchMsg extends CmdMgrCmd {
   }
 
   Future<void> _getPartsAndFetchMsg() async {
-    _total = await _fetchService.countParts(_account);
-    if(_total == 0){
+    _totalToFetch = await _fetchService.countParts(_account);
+    if(_totalToFetch == 0){
       _log.finest('${_account.email} - ${_account.provider} no parts to fetch. Finishing CmdFetchMsg');
       notify(CmdMgrCmdNotifFinish(id));
       return;
@@ -123,7 +126,7 @@ class CmdFetchMsg extends CmdMgrCmd {
 
     _fetched.add(message);
     _log.fine('Fetched ${message.extMessageId}.');
-    notify(CmdFetchMsgNotification(_account, _save, _fetched, _total));
+    notify(CmdFetchMsgNotification(_account, _save, _fetched, _totalToFetch.toInt()));
   }
 
   Future<void> _processFetchedMessages() async {
@@ -137,10 +140,13 @@ class CmdFetchMsg extends CmdMgrCmd {
     await _saveMessages(_save);
     await _saveCompanies(senders);
 
-
     await _fetchService.deleteParts(_fetched, _account);
 
+    _amountFetched += _fetched.length;
     _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
+
+    // notify of progress update
+    notify(CmdMgrCmdNotifProgressUpdate(getProgressDescription()));
 
     try {
       _amplitude?.logEvent("EMAILS_FETCHED", eventProperties: {
@@ -150,7 +156,6 @@ class CmdFetchMsg extends CmdMgrCmd {
     } catch (e) {
       _log.severe(e);
     }
-
 
     _decisionStrategySpam.addSpamCards(_account, _save);
     _graphStrategyEmail.write(_save);
@@ -189,6 +194,16 @@ class CmdFetchMsg extends CmdMgrCmd {
     for (String domain in domains) {
       _companyService.upsert(domain);
     }
+  }
+
+  @override
+  num getProgress() {
+    return _amountFetched / _totalToFetch;
+  }
+
+  @override
+  String getProgressDescription() {
+    return "${_amountFetched}/${_totalToFetch} emails fetched";
   }
 
 }

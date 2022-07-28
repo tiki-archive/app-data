@@ -8,6 +8,7 @@ import '../account/account_model.dart';
 class ScreenModel {
 
   List<AccountModel> accounts = List.empty(growable: true);
+  Map<AccountModel, String> fetchProgress = new Map();
 
   ScreenModel();
 }
