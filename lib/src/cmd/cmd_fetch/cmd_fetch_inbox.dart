@@ -61,9 +61,11 @@ class CmdFetchInbox extends CmdMgrCmd{
         onFinish: () => {});
 
     _log.fine('email index ${_account.email} on ${DateTime.now().toIso8601String()}');
+    if(_page != null) _log.info('email index started in page:$_page');
     _intgContextEmail.getInbox(
         account: _account,
         since: _since,
+        page: _page,
         onResult: _saveParts,
         onFinish: _onFinish
     );
@@ -117,6 +119,7 @@ class CmdFetchInbox extends CmdMgrCmd{
           .toList();
       await _fetchService.saveParts(parts, _account);
       _page = page;
+      if(_page != null) await _fetchService.savePage(_page!, _account);
 
       // add the amount indexed
       _amountIndexed += parts.length;

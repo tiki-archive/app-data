@@ -17,6 +17,7 @@ abstract class IntgStrategyInterfaceEmail {
   Future<void> getInbox(
       {required AccountModel account,
       DateTime? since,
+      String? page,
       required Function(List<EmailMsgModel> messages, {String? page}) onResult,
       required Function() onFinish});
 
