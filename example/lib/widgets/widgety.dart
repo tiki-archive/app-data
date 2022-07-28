@@ -11,6 +11,7 @@ class Widgety extends StatelessWidget {
   Widget build(BuildContext context) {
     TikiStyle.init(context);
     return tikiData.widget(
+        multiple: true,
         headerBar: Container(
           height: SizeProvider.instance.height(34),
           color: Colors.blue,

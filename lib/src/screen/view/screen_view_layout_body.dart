@@ -13,8 +13,9 @@ import 'screen_view_widget_soon.dart';
 import 'screen_view_widget_state.dart';
 
 class ScreenViewLayoutBody extends StatelessWidget {
+  final bool multiple;
 
-  const ScreenViewLayoutBody({Key? key}) : super(key: key);
+  const ScreenViewLayoutBody({Key? key, this.multiple = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,7 @@ class ScreenViewLayoutBody extends StatelessWidget {
                         color: isLinked
                             ? ColorProvider.green
                             : ColorProvider.blue),
-                    const ScreenViewLayoutAccounts(),
+                    ScreenViewLayoutAccounts(multiple: multiple),
                     Container(
                         margin: EdgeInsets.only(
                             top: SizeProvider.instance.height(19)),
