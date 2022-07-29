@@ -117,12 +117,17 @@ class CmdFetchMsg extends CmdMgrCmd {
         onFinish: _processFetchedMessages,
       );
     }catch(e){
+      _log.info(e.toString());
       notify(CmdMgrCmdNotifException(id, exception: e));
     }
   }
 
   void _onMessageFetched(EmailMsgModel message){
+
     if (message.toEmail?.toLowerCase() == _account.email!.toLowerCase() && message.sender?.unsubscribeMailTo != null) _save.add(message);
+
+    // since our denominator is indexed messages, even not processed ones should show up.
+    _amountFetched ++;
 
     _fetched.add(message);
     _log.fine('Fetched ${message.extMessageId}.');
@@ -133,20 +138,17 @@ class CmdFetchMsg extends CmdMgrCmd {
     _log.fine('Fetched ${_fetched.length} processed messages');
     _log.fine('Proceeding to save ${_save.length} relevant messages');
 
+    _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
+
     Map<String, EmailSenderModel> senders = {};
     _save.where((msg) => msg.sender != null && msg.sender?.email != null)
         .forEach((msg) => senders[msg.sender!.email!] = msg.sender!);
+
     await _saveSenders(senders);
     await _saveMessages(_save);
     await _saveCompanies(senders);
 
     await _fetchService.deleteParts(_fetched, _account);
-
-    _amountFetched += _fetched.length;
-    _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
-
-    // notify of progress update
-    notify(CmdMgrCmdNotifProgressUpdate(getProgressDescription()));
 
     try {
       _amplitude?.logEvent("EMAILS_FETCHED", eventProperties: {
@@ -158,7 +160,12 @@ class CmdFetchMsg extends CmdMgrCmd {
     }
 
     _decisionStrategySpam.addSpamCards(_account, _save);
-    _graphStrategyEmail.write(_save);
+
+    // saves to local graph & sync chain
+    _graphStrategyEmail.write(_save).catchError((error) {
+      _log.info("Problem saving email....");
+    });
+
     if(status == CmdMgrCmdStatus.running) _getPartsAndFetchMsg();
   }
 

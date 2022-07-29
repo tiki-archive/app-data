@@ -16,6 +16,7 @@ import '../cmd/cmd_fetch/cmd_fetch_msg.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg_notification.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_exception.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_progress_update.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_status.dart';
@@ -140,10 +141,16 @@ class ScreenService extends ChangeNotifier {
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
     cmd.listeners.add((CmdMgrCmdNotif notif) async {
-      if(notif is CmdMgrCmdNotifProgressUpdate) {
-        _model.fetchProgress[account] = notif.progress;
-        notifyListeners();
+      if(notif is CmdFetchMsgNotification) {
+        if (notif.fetch.length % 10 == 0) {
+          _model.fetchProgress[account] = cmd.getProgressDescription();
+        }
+      } else if (notif is CmdMgrCmdNotifFinish) {
+        _model.fetchProgress[account] = "Complete!";
+      } else if (notif is CmdMgrCmdNotifException) {
+        _model.fetchProgress[account] = "Fetch Failed: ${notif.exception?.toString()}";
       }
+      notifyListeners();
     });
   }
 

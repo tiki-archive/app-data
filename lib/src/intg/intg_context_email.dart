@@ -4,6 +4,7 @@
  */
 
 import 'package:httpp/httpp.dart';
+import 'package:logging/logging.dart';
 
 import '../account/account_model.dart';
 import '../account/account_model_provider.dart';
