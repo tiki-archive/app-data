@@ -13,8 +13,11 @@ import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../cmd/cmd_fetch/cmd_fetch_inbox.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_exception.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd_status.dart';
 import '../cmd/cmd_mgr/cmd_mgr_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
@@ -98,6 +101,34 @@ class ScreenService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> startCommandsFor(AccountModel account) async{
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(CmdFetchInbox.generateId(account));
+    if(cmdFetchInbox?.status != CmdMgrCmdStatus.running){
+      _cmdMgrService.resumeCommand(cmdFetchInbox!.id);
+    }else{
+      await _fetchInbox(account);
+    }
+    CmdMgrCmd? cmdFetchMsg = _cmdMgrService.getById(CmdFetchMsg.generateId(account));
+    if(cmdFetchInbox?.status != CmdMgrCmdStatus.running){
+      _cmdMgrService.resumeCommand(cmdFetchMsg!.id);
+    }else{
+      await _fetchMessages(account);
+    }
+    notifyListeners();
+  }
+
+  Future<void> pauseCommandsFor(AccountModel account) async {
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(CmdFetchInbox.generateId(account));
+    if(cmdFetchInbox?.status == CmdMgrCmdStatus.running){
+      _cmdMgrService.pauseCommand(cmdFetchInbox!.id);
+    }
+    CmdMgrCmd? cmdFetchMsg = _cmdMgrService.getById(CmdFetchMsg.generateId(account));
+    if(cmdFetchInbox?.status == CmdMgrCmdStatus.running) {
+      _cmdMgrService.pauseCommand(cmdFetchMsg!.id);
+    }
+    notifyListeners();
+  }
+
   Future<void> _fetchInbox(AccountModel account) async {
     _decisionStrategySpam.setPending(true);
     String? page = await _fetchService.getPage(account);
@@ -139,8 +170,12 @@ class ScreenService extends ChangeNotifier {
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {
     _log.finest("received ${notif.runtimeType.toString()}");
-    if(notif is CmdMgrCmdNotifFinish)
+    if(notif is CmdMgrCmdNotifFinish) {
       _decisionStrategySpam.setPending(false);
+    }
+    if(notif is CmdMgrCmdNotifException) {
+      _log.warning("${notif.commandId} exception", notif.exception);
+    }
   }
 
   void _sendConnectedAccounts() {
