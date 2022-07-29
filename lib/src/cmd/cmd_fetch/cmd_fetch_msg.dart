@@ -119,7 +119,7 @@ class CmdFetchMsg extends CmdMgrCmd {
   }
 
   void _onMessageFetched(EmailMsgModel message){
-    if (message.toEmail == _account.email! && message.sender?.unsubscribeMailTo != null) _save.add(message);
+    if (message.sender?.unsubscribeMailTo != null) _save.add(message);
     _fetched.add(message);
     _log.fine('Fetched ${message.messageId}.');
     notify(CmdFetchMsgNotification(_account, _save, _fetched, _total));
