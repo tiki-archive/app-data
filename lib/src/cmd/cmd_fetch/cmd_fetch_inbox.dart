@@ -11,6 +11,7 @@ import '../../fetch/fetch_model_part.dart';
 import '../../fetch/fetch_service.dart';
 import '../../intg/intg_context_email.dart';
 import '../cmd_mgr/cmd_mgr_cmd.dart';
+import '../cmd_mgr/cmd_mgr_cmd_notif_exception.dart';
 import '../cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
 import 'cmd_fetch_inbox_notification.dart';
 
@@ -39,13 +40,17 @@ class CmdFetchInbox extends CmdMgrCmd{
   Future<void> index() async {
     _log.fine('email index ${_account.email} on ${DateTime.now().toIso8601String()}');
     if(_page != null) _log.info('email index started in page:$_page');
-    _intgContextEmail.getInbox(
-        account: _account,
-        since: _since,
-        page: _page,
-        onResult: _saveParts,
-        onFinish: _onFinish
-    );
+    try {
+      _intgContextEmail.getInbox(
+          account: _account,
+          since: _since,
+          page: _page,
+          onResult: _saveParts,
+          onFinish: _onFinish
+      );
+    }catch(e){
+      CmdMgrCmdNotifException(e.toString(),exception: e);
+    }
   }
 
   @override

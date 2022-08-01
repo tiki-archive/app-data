@@ -1,3 +1,10 @@
+## 0.0.20
+
+* disconnect account that can't refresh
+* strategy_google0.0.13
+* strategy_microsoft 0.1.11
+
+
 ## 0.0.19
 
 * strategy_google 0.1.11
