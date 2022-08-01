@@ -61,7 +61,13 @@ class CompanyService {
           },
           onError: (error) async {
             _log.warning(error);
-            saved = await _repository.insert(CompanyModel(domain: domain));
+
+            saved = await _repository.getByDomain(domain);
+
+            if (saved == null) {
+              saved = await _repository.insert(CompanyModel(domain: domain));
+            }
+
           });
       if(onComplete != null) onComplete(saved);
     }

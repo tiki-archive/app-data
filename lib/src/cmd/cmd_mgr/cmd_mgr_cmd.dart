@@ -1,3 +1,5 @@
+import 'dart:core';
+
 import 'cmd_mgr_cmd_notif.dart';
 import 'cmd_mgr_cmd_status.dart';
 
@@ -18,5 +20,8 @@ abstract class CmdMgrCmd{
   Future<void> onPause();
   Future<void> onResume();
   Future<void> onStop();
+
+  num getProgress();
+  String getProgressDescription();
 
 }

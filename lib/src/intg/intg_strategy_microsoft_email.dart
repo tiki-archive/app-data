@@ -17,6 +17,16 @@ class IntgStrategyMicrosoftEmail extends IntgStrategyMicrosoft
       : super(accountService, httpp: httpp);
 
   @override
+  Future<void> countInbox(
+      {required AccountModel account,
+        DateTime? since,
+        required Function(int amount) onResult,
+        required Function() onFinish}) =>
+      construct(account: account).countInbox(
+          onResult: onResult,
+          onFinish: onFinish);
+
+  @override
   Future<void> getInbox(
           {required AccountModel account,
           DateTime? since,

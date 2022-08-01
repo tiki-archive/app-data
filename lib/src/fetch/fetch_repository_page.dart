@@ -9,6 +9,7 @@ import 'fetch_api_email_enum.dart';
 import 'fetch_model_page.dart';
 
 class FetchRepositoryPage {
+
   static const String _table = 'fetch_inbox_page';
 
   final Database _database;
@@ -16,12 +17,12 @@ class FetchRepositoryPage {
   FetchRepositoryPage(this._database);
 
   Future<void> createTable() =>
-      _database.execute('CREATE TABLE IF NOT EXISTS $_table('
-          'fetch_id INTEGER PRIMARY KEY AUTOINCREMENT, '
-          'account_id INTEGER NOT NULL, '
-          'api_enum TEXT NOT NULL, '
-          'page STRING NOT NULL, '
-          'UNIQUE (account_id, api_enum));');
+    _database.execute('CREATE TABLE IF NOT EXISTS $_table('
+        'fetch_id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'account_id INTEGER NOT NULL, '
+        'api_enum TEXT NOT NULL, '
+        'page STRING NOT NULL, '
+        'UNIQUE (account_id, api_enum));');
 
   Future<FetchModelPage> upsert(FetchModelPage data) async {
     int id = await _database.rawInsert(

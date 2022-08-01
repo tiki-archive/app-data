@@ -32,7 +32,6 @@ void main() async {
 
   TikiLocalGraph localGraph = await TikiLocalGraph(chainService)
       .open(database, httpp: httpp, accessToken: accessToken);
-
   Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((record) {
       if(record.level == Level.INFO) {
