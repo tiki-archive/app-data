@@ -138,9 +138,9 @@ class CmdFetchInbox extends CmdMgrCmd{
       }
 
       notify(CmdFetchInboxNotification(_account, messages));
-      _log.fine('indexed ${messages.length} messages');
+      _log.fine('indexed ${parts.length} messages');
 
-      _fetchService.incrementStatus(_account, amount_indexed_change: messages.length);
+      _fetchService.incrementStatus(_account, amount_indexed_change: parts.length);
   }
 
   Future<void> _onFinish() async {

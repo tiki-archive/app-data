@@ -30,6 +30,7 @@ class CmdFetchMsg extends CmdMgrCmd {
   final List<EmailMsgModel> _fetched = [];
 
   num _amountFetched = 0;
+  num _remainingToFetch = 0;
   num _totalToFetch = 0;
 
   final FetchService _fetchService;
@@ -62,7 +63,8 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   @override
   Future<void> onStart() async {
-    _totalToFetch = await _fetchService.countParts(_account);
+    _remainingToFetch = await _fetchService.countParts(_account);
+    _totalToFetch = _remainingToFetch;
     _getPartsAndFetchMsg();
   }
 
@@ -73,7 +75,7 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   @override
   Future<void> onResume() async {
-    _totalToFetch = await _fetchService.countParts(_account);
+    _remainingToFetch = await _fetchService.countParts(_account);
     _getPartsAndFetchMsg();
   }
 
@@ -89,8 +91,10 @@ class CmdFetchMsg extends CmdMgrCmd {
   }
 
   Future<void> _getPartsAndFetchMsg() async {
-    _totalToFetch = await _fetchService.countParts(_account);
-    if(_totalToFetch == 0){
+    _remainingToFetch = await _fetchService.countParts(_account);
+    _totalToFetch = _remainingToFetch + _amountFetched; // accounts for indexing more while fetching
+
+    if(_remainingToFetch == 0){
       _log.finest('${_account.email} - ${_account.provider} no parts to fetch. Finishing CmdFetchMsg');
       notify(CmdMgrCmdNotifFinish(id));
       return;
@@ -125,18 +129,14 @@ class CmdFetchMsg extends CmdMgrCmd {
   void _onMessageFetched(EmailMsgModel message){
 
     if (message.sender?.unsubscribeMailTo != null) _save.add(message);
-    _amountFetched ++;
 
     _fetched.add(message);
     _log.fine('Fetched ${message.extMessageId}.');
-    notify(CmdFetchMsgNotification(_account, _save, _fetched, _totalToFetch.toInt()));
   }
 
   Future<void> _processFetchedMessages() async {
     _log.fine('Fetched ${_fetched.length} processed messages');
     _log.fine('Proceeding to save ${_save.length} relevant messages');
-
-    _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
 
     Map<String, EmailSenderModel> senders = {};
     _save.where((msg) => msg.sender != null && msg.sender?.email != null)
@@ -160,9 +160,23 @@ class CmdFetchMsg extends CmdMgrCmd {
     _decisionStrategySpam.addSpamCards(_account, _save);
 
     // saves to local graph & sync chain
+
+    /*
     _graphStrategyEmail.write(_save).catchError((error) {
       _log.info("Problem saving email....");
     });
+    */
+
+    /*
+    FOR MERGE: should all go in then() part after write
+     */
+    _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
+    _amountFetched += _fetched.length;
+    notify(CmdFetchMsgNotification(_account, _save, _fetched, _totalToFetch.toInt() ));
+
+    // clear fetched and save
+    _fetched.clear();
+    _save.clear();
 
     if(status == CmdMgrCmdStatus.running) _getPartsAndFetchMsg();
   }

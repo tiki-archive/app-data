@@ -24,6 +24,8 @@ import '../cmd/cmd_mgr/cmd_mgr_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
 import '../email/email_service.dart';
+import '../email/msg/email_msg_model.dart';
+import '../fetch/fetch_model_status.dart';
 import '../fetch/fetch_service.dart';
 import '../graph/graph_strategy_email.dart';
 import '../intg/intg_context.dart';
@@ -103,6 +105,9 @@ class ScreenService extends ChangeNotifier {
   }
 
   Future<void> startCommandsFor(AccountModel account) async{
+    _model.pausedAccounts.remove(account);
+    notifyListeners();
+
     CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(CmdFetchInbox.generateId(account));
     if(cmdFetchInbox?.status != CmdMgrCmdStatus.running){
       _cmdMgrService.resumeCommand(cmdFetchInbox!.id);
@@ -134,7 +139,7 @@ class ScreenService extends ChangeNotifier {
     CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(
         CmdFetchInbox.generateId(account));
     if (cmdFetchInbox != null) {
-      _cmdMgrService.stopCommand(cmdFetchInbox!.id);
+      _cmdMgrService.stopCommand(cmdFetchInbox.id);
       notifyListeners();
     }
   }
@@ -178,14 +183,18 @@ class ScreenService extends ChangeNotifier {
     cmd.listeners.add(_cmdListener);
     cmd.listeners.add((CmdMgrCmdNotif notif) async {
       if(notif is CmdFetchMsgNotification) {
-        if (notif.fetch.length % 10 == 0) {
-          _model.fetchProgress[account] = cmd.getProgressDescription();
-        }
+        String lt = await getLifetimeStatus(account);
+        _model.fetchProgress[account] = cmd.getProgressDescription() + " | Lifetime: " + lt;
       } else if (notif is CmdMgrCmdNotifFinish) {
         _model.fetchProgress[account] = "Complete!";
+        _log.info("Fetch complete!");
       } else if (notif is CmdMgrCmdNotifException) {
         _model.fetchProgress[account] = "Fetch Failed: ${notif.exception?.toString()}";
+
+        // TODO: paused accounts get buttons rendered for them to retry cmds
+        _model.pausedAccounts.add(account);
       }
+
       notifyListeners();
     });
   }
@@ -208,21 +217,25 @@ class ScreenService extends ChangeNotifier {
     }
   }
 
+  bool isPaused(AccountModel? account) {
+    return _model.pausedAccounts.contains(account);
+  }
+
   String getStatus(AccountModel? account) {
-    // _log.info("Fetch progress");
-    // for (CmdMgrCmd cmd in _cmdMgrService.getAll()) {
-    //   if (cmd is CmdFetchMsg) {
-    //     CmdFetchMsg fch = cmd;
-    //
-    //     _log.info("found fetch cmd w status ${fch.status.name}");
-    //
-    //     return fch.getProgressDescription() + " | ${fch.status.name}";
-    //   }
-    // }
     if (_model.fetchProgress.containsKey(account)) {
       return _model.fetchProgress[account]!;
     }
     return "Not Found";
+  }
+
+  Future<String> getLifetimeStatus(AccountModel account) async {
+     FetchModelStatus<EmailMsgModel>? lifetime = await _fetchService.getStatus(account);
+
+     if (lifetime != null) {
+       return "${lifetime.amount_fetched} fetched/${lifetime.amount_indexed} indexed/${lifetime.total_to_fetch} in mailbox";
+     }
+
+     return "Not Found";
   }
 
 }
