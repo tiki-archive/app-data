@@ -10,8 +10,9 @@ import 'screen_view_layout_body.dart';
 
 class ScreenViewLayout extends StatelessWidget {
   final Widget? headerBar;
+  final bool multiple;
 
-   const ScreenViewLayout({Key? key, this.headerBar}) : super(key: key);
+   const ScreenViewLayout({Key? key, this.headerBar, this.multiple = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,7 @@ class ScreenViewLayout extends StatelessWidget {
               padding:
                   EdgeInsets.only(bottom: SizeProvider.instance.height(35)),
               child: headerBar),
-        const Expanded(child: ScreenViewLayoutBody())
+        const Expanded(child: ScreenViewLayoutBody(multiple: true))
       ]))
     ])));
   }

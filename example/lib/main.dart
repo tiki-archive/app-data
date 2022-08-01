@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:amplitude_flutter/amplitude.dart';
 
 import 'widgets/widgety.dart';
@@ -30,10 +32,13 @@ void main() async {
 
   TikiLocalGraph localGraph = await TikiLocalGraph(chainService)
       .open(database, httpp: httpp, accessToken: accessToken);
-  
   Logger.root.level = Level.INFO;
-  Logger.root.onRecord.listen((record) =>
-      print('${record.level.name} [${record.loggerName}] ${record.message}'));
+  Logger.root.onRecord.listen((record) {
+      if(record.level == Level.INFO) {
+        return print(
+            '${record.level.name} [${record.loggerName}] ${record.message}');
+      };
+  });
 
   Amplitude amplitude = Amplitude.getInstance(instanceName: "Develop");
   await amplitude.init("afba707e002643a678747221206c9605");
@@ -49,26 +54,35 @@ void main() async {
       httpp: httpp,
       accessToken: accessToken,
       amplitude: amplitude);
+  runZonedGuarded(() async {
+    FlutterError.onError = (FlutterErrorDetails details) {
+      Logger("Flutter Error")
+          .severe(details.summary, details.exception, details.stack);
+    };
+    runApp(MaterialApp(
+        title: 'Data Example',
+        theme: ThemeData(),
+        home: Builder(builder: (context) => Scaffold(
+          body: Center(
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                        child: Text('App Screen Test'),
+                        onPressed: () => navigateTo(Widgety(tikiData), context)),
+                    ElevatedButton(
+                        child: Text('Fetch Command Test'),
+                        onPressed: () => navigateTo(FetchCommandTester(tikiData), context))
+                  ]
+              )
+          ),
+        ),
+        )));
+  }, (exception, stackTrace) async {
+    Logger("Uncaught Exception")
+        .severe("Caught by runZoneGuarded", exception, stackTrace);
+  });
 
-  runApp(MaterialApp(
-    title: 'Data Example',
-    theme: ThemeData(),
-    home: Builder(builder: (context) => Scaffold(
-      body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-              child: Text('App Screen Test'),
-              onPressed: () => navigateTo(Widgety(tikiData), context)),
-              ElevatedButton(
-                  child: Text('Fetch Command Test'),
-                  onPressed: () => navigateTo(FetchCommandTester(tikiData), context))
-            ]
-          )
-      ),
-    ),
-  )));
 }
 
 navigateTo(Widget destination, BuildContext context) {

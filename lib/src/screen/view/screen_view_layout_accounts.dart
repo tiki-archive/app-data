@@ -13,13 +13,20 @@ import '../../cmd/cmd_mgr/cmd_mgr_service.dart';
 import '../screen_service.dart';
 
 class ScreenViewLayoutAccounts extends StatelessWidget {
-   const ScreenViewLayoutAccounts({Key? key}) : super(key: key);
+  final bool multiple;
+
+   const ScreenViewLayoutAccounts({Key? key, this.multiple = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     ScreenService service = Provider.of<ScreenService>(context);
-    AccountModel? account = service.accounts.isEmpty ? null : service.accounts.first;
-    return Column(children: [
+    return Column(children: multiple ? multipleAccounts(service) : singleAccount(service) );
+  }
+
+  List<Widget> singleAccount(ScreenService service) {
+    AccountModel? account = service.accounts.isEmpty ? null : service.accounts
+        .first;
+    return [
       account == null || account.provider == AccountModelProvider.google
           ? Container(
           margin: EdgeInsets.only(top: SizeProvider.instance.height(31)),
@@ -42,11 +49,17 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
               account: account,
               provider: AccountModelProvider.microsoft,
               onLink: (account) => service.controller.saveAccount(account),
-              onUnlink: (email) => service.controller
-                  .removeAccount(AccountModelProvider.microsoft, email)))
+              onUnlink: (email) =>
+                  service.controller
+                      .removeAccount(AccountModelProvider.microsoft, email)))
           : Container(),
-    ]);
+    ];
   }
+
+  List<Widget> multipleAccounts(ScreenService service) => [
+    ..._getConnectedAccounts(service),
+    ..._getConnectionWidgets(service)
+  ];
 
   List<Widget> _getConnectedAccounts(ScreenService service) {
     List<Widget> widgets = [];
@@ -66,7 +79,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
     return widgets;
   }
 
-   List<Widget> _getConnectionWidgets(ScreenService service) {
+  List<Widget> _getConnectionWidgets(ScreenService service) {
      List<Widget> widgets = [];
      AccountModelProvider.values.forEach((provider) => widgets.add(
       Container(

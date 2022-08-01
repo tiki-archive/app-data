@@ -1,3 +1,11 @@
+## 0.0.20
+
+* disconnect account that can't refresh
+* stop all commands when account is disconnected
+* process emails that doesn't have the current connected account as recipient
+* strategy_google 0.0.13
+* strategy_microsoft 0.1.11
+
 ## 0.0.19
 
 * strategy_google 0.1.11

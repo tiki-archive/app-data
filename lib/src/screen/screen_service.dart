@@ -89,8 +89,7 @@ class ScreenService extends ChangeNotifier {
     try {
       AccountModel account = _model.accounts.firstWhere((account) =>
         account.provider == type && account.email == username);
-      _cmdMgrService.stopCommand(CmdFetchMsg.generateId(account));
-      _cmdMgrService.stopCommand(CmdFetchInbox.generateId(account));
+      stopCommandsFor(account);
       _model.accounts.remove(account);
       account.shouldReconnect = true;
       await _accountService.save(account);
@@ -101,6 +100,43 @@ class ScreenService extends ChangeNotifier {
       _log.warning("Account $username of ${type.runtimeType} not found");
     }
     notifyListeners();
+  }
+
+  Future<void> startCommandsFor(AccountModel account) async{
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(CmdFetchInbox.generateId(account));
+    if(cmdFetchInbox?.status != CmdMgrCmdStatus.running){
+      _cmdMgrService.resumeCommand(cmdFetchInbox!.id);
+    }else{
+      await _fetchInbox(account);
+    }
+    CmdMgrCmd? cmdFetchMsg = _cmdMgrService.getById(CmdFetchMsg.generateId(account));
+    if(cmdFetchInbox?.status != CmdMgrCmdStatus.running){
+      _cmdMgrService.resumeCommand(cmdFetchMsg!.id);
+    }else{
+      await _fetchMessages(account);
+    }
+    notifyListeners();
+  }
+
+  Future<void> pauseCommandsFor(AccountModel account) async {
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(CmdFetchInbox.generateId(account));
+    if(cmdFetchInbox?.status == CmdMgrCmdStatus.running){
+      _cmdMgrService.pauseCommand(cmdFetchInbox!.id);
+    }
+    CmdMgrCmd? cmdFetchMsg = _cmdMgrService.getById(CmdFetchMsg.generateId(account));
+    if(cmdFetchInbox?.status == CmdMgrCmdStatus.running) {
+      _cmdMgrService.pauseCommand(cmdFetchMsg!.id);
+    }
+    notifyListeners();
+  }
+
+  Future<void> stopCommandsFor(AccountModel account) async {
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(
+        CmdFetchInbox.generateId(account));
+    if (cmdFetchInbox != null) {
+      _cmdMgrService.stopCommand(cmdFetchInbox!.id);
+      notifyListeners();
+    }
   }
 
   Future<void> _fetchInbox(AccountModel account) async {
@@ -156,8 +192,12 @@ class ScreenService extends ChangeNotifier {
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {
     _log.finest("received ${notif.runtimeType.toString()}");
-    if(notif is CmdMgrCmdNotifFinish)
+    if(notif is CmdMgrCmdNotifFinish) {
       _decisionStrategySpam.setPending(false);
+    }
+    if(notif is CmdMgrCmdNotifException) {
+      _log.warning("${notif.commandId} exception", notif.exception);
+    }
   }
 
   void _sendConnectedAccounts() {

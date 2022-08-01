@@ -124,9 +124,7 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   void _onMessageFetched(EmailMsgModel message){
 
-    if (message.toEmail?.toLowerCase() == _account.email!.toLowerCase() && message.sender?.unsubscribeMailTo != null) _save.add(message);
-
-    // since our denominator is indexed messages, even not processed ones should show up.
+    if (message.sender?.unsubscribeMailTo != null) _save.add(message);
     _amountFetched ++;
 
     _fetched.add(message);
