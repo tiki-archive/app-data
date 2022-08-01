@@ -34,7 +34,8 @@ class IntgStrategyGoogle
                   {DateTime? accessExp,
                   String? accessToken,
                   DateTime? refreshExp,
-                  String? refreshToken})?
+                  String? refreshToken,
+                  Object? error})?
               onRefresh}) =>
       account != null
           ? TikiStrategyGoogle.loggedIn(
@@ -51,13 +52,16 @@ class IntgStrategyGoogle
                   {DateTime? accessExp,
                   String? accessToken,
                   DateTime? refreshExp,
-                  String? refreshToken}) {
+                  String? refreshToken,
+                  Object? error}) {
                 if (onRefresh != null)
                   onRefresh(account,
                       accessExp: accessExp,
                       accessToken: accessToken,
                       refreshToken: refreshToken,
-                      refreshExp: refreshExp);
+                      refreshExp: refreshExp,
+                      error: error
+                  );
               },
               httpp: httpp)
           : TikiStrategyGoogle(
@@ -66,7 +70,8 @@ class IntgStrategyGoogle
               iosClientId: _iosClientId,
               onLink: (account) => onLinkMap(onLink, account),
               onUnlink: onUnlink,
-              httpp: httpp);
+              httpp: httpp,
+          );
 
   @override
   Future<bool> isConnected(AccountModel account) {
