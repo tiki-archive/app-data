@@ -87,8 +87,7 @@ class ScreenService extends ChangeNotifier {
     try {
       AccountModel account = _model.accounts.firstWhere((account) =>
         account.provider == type && account.email == username);
-      _cmdMgrService.stopCommand(CmdFetchMsg.generateId(account));
-      _cmdMgrService.stopCommand(CmdFetchInbox.generateId(account));
+      stopCommandsFor(account);
       _model.accounts.remove(account);
       account.shouldReconnect = true;
       await _accountService.save(account);
@@ -127,6 +126,15 @@ class ScreenService extends ChangeNotifier {
       _cmdMgrService.pauseCommand(cmdFetchMsg!.id);
     }
     notifyListeners();
+  }
+
+  Future<void> stopCommandsFor(AccountModel account) async {
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(
+        CmdFetchInbox.generateId(account));
+    if (cmdFetchInbox != null) {
+      _cmdMgrService.stopCommand(cmdFetchInbox!.id);
+      notifyListeners();
+    }
   }
 
   Future<void> _fetchInbox(AccountModel account) async {
