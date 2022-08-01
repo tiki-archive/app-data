@@ -13,8 +13,13 @@ import '../account/account_model_provider.dart';
 import '../account/account_service.dart';
 import '../cmd/cmd_fetch/cmd_fetch_inbox.dart';
 import '../cmd/cmd_fetch/cmd_fetch_msg.dart';
+import '../cmd/cmd_fetch/cmd_fetch_msg_notification.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_exception.dart';
 import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd_notif_progress_update.dart';
+import '../cmd/cmd_mgr/cmd_mgr_cmd_status.dart';
 import '../cmd/cmd_mgr/cmd_mgr_service.dart';
 import '../company/company_service.dart';
 import '../decision/decision_strategy_spam.dart';
@@ -84,8 +89,7 @@ class ScreenService extends ChangeNotifier {
     try {
       AccountModel account = _model.accounts.firstWhere((account) =>
         account.provider == type && account.email == username);
-      _cmdMgrService.stopCommand(CmdFetchMsg.generateId(account));
-      _cmdMgrService.stopCommand(CmdFetchInbox.generateId(account));
+      stopCommandsFor(account);
       _model.accounts.remove(account);
       account.shouldReconnect = true;
       await _accountService.save(account);
@@ -96,6 +100,43 @@ class ScreenService extends ChangeNotifier {
       _log.warning("Account $username of ${type.runtimeType} not found");
     }
     notifyListeners();
+  }
+
+  Future<void> startCommandsFor(AccountModel account) async{
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(CmdFetchInbox.generateId(account));
+    if(cmdFetchInbox?.status != CmdMgrCmdStatus.running){
+      _cmdMgrService.resumeCommand(cmdFetchInbox!.id);
+    }else{
+      await _fetchInbox(account);
+    }
+    CmdMgrCmd? cmdFetchMsg = _cmdMgrService.getById(CmdFetchMsg.generateId(account));
+    if(cmdFetchInbox?.status != CmdMgrCmdStatus.running){
+      _cmdMgrService.resumeCommand(cmdFetchMsg!.id);
+    }else{
+      await _fetchMessages(account);
+    }
+    notifyListeners();
+  }
+
+  Future<void> pauseCommandsFor(AccountModel account) async {
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(CmdFetchInbox.generateId(account));
+    if(cmdFetchInbox?.status == CmdMgrCmdStatus.running){
+      _cmdMgrService.pauseCommand(cmdFetchInbox!.id);
+    }
+    CmdMgrCmd? cmdFetchMsg = _cmdMgrService.getById(CmdFetchMsg.generateId(account));
+    if(cmdFetchInbox?.status == CmdMgrCmdStatus.running) {
+      _cmdMgrService.pauseCommand(cmdFetchMsg!.id);
+    }
+    notifyListeners();
+  }
+
+  Future<void> stopCommandsFor(AccountModel account) async {
+    CmdMgrCmd? cmdFetchInbox = _cmdMgrService.getById(
+        CmdFetchInbox.generateId(account));
+    if (cmdFetchInbox != null) {
+      _cmdMgrService.stopCommand(cmdFetchInbox!.id);
+      notifyListeners();
+    }
   }
 
   Future<void> _fetchInbox(AccountModel account) async {
@@ -135,12 +176,28 @@ class ScreenService extends ChangeNotifier {
     );
     _cmdMgrService.addCommand(cmd);
     cmd.listeners.add(_cmdListener);
+    cmd.listeners.add((CmdMgrCmdNotif notif) async {
+      if(notif is CmdFetchMsgNotification) {
+        if (notif.fetch.length % 10 == 0) {
+          _model.fetchProgress[account] = cmd.getProgressDescription();
+        }
+      } else if (notif is CmdMgrCmdNotifFinish) {
+        _model.fetchProgress[account] = "Complete!";
+      } else if (notif is CmdMgrCmdNotifException) {
+        _model.fetchProgress[account] = "Fetch Failed: ${notif.exception?.toString()}";
+      }
+      notifyListeners();
+    });
   }
 
   Future<void> _cmdListener(CmdMgrCmdNotif notif) async {
     _log.finest("received ${notif.runtimeType.toString()}");
-    if(notif is CmdMgrCmdNotifFinish)
+    if(notif is CmdMgrCmdNotifFinish) {
       _decisionStrategySpam.setPending(false);
+    }
+    if(notif is CmdMgrCmdNotifException) {
+      _log.warning("${notif.commandId} exception", notif.exception);
+    }
   }
 
   void _sendConnectedAccounts() {
@@ -149,6 +206,23 @@ class ScreenService extends ChangeNotifier {
         "count" : accounts.length
       });
     }
+  }
+
+  String getStatus(AccountModel? account) {
+    // _log.info("Fetch progress");
+    // for (CmdMgrCmd cmd in _cmdMgrService.getAll()) {
+    //   if (cmd is CmdFetchMsg) {
+    //     CmdFetchMsg fch = cmd;
+    //
+    //     _log.info("found fetch cmd w status ${fch.status.name}");
+    //
+    //     return fch.getProgressDescription() + " | ${fch.status.name}";
+    //   }
+    // }
+    if (_model.fetchProgress.containsKey(account)) {
+      return _model.fetchProgress[account]!;
+    }
+    return "Not Found";
   }
 
 }

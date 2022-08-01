@@ -78,7 +78,7 @@ class TikiData {
     return this;
   }
 
-  Widget widget({Widget? headerBar}) =>
-      _screenService.presenter.render(headerBar: headerBar);
+  Widget widget({Widget? headerBar, bool multiple = false}) =>
+      _screenService.presenter.render(headerBar: headerBar, multiple: multiple);
 
 }

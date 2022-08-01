@@ -23,7 +23,8 @@ abstract class IntgStrategyInterface<S, M> {
               {String? accessToken,
               DateTime? accessExp,
               String? refreshToken,
-              DateTime? refreshExp})?
+              DateTime? refreshExp,
+              Object? error})?
           onRefresh});
 
   Widget widget(
@@ -43,11 +44,21 @@ abstract class IntgStrategyInterface<S, M> {
       {String? accessToken,
       DateTime? accessExp,
       String? refreshToken,
-      DateTime? refreshExp}) async {
-    if (accessToken != null) account.accessToken = accessToken;
-    if (accessExp != null) account.accessTokenExpiration = accessExp;
-    if (refreshToken != null) account.refreshToken = refreshToken;
-    if (refreshExp != null) account.refreshTokenExpiration = refreshExp;
+      DateTime? refreshExp,
+      Object? error}) async {
+    if(error != null) {
+      account.accessToken = null;
+      account.accessTokenExpiration = null;
+      account.refreshToken = null;
+      account.refreshTokenExpiration = null;
+      account.shouldReconnect = true;
+    }else{
+      if (accessToken != null) account.accessToken = accessToken;
+      if (accessExp != null) account.accessTokenExpiration = accessExp;
+      if (refreshToken != null) account.refreshToken = refreshToken;
+      if (refreshExp != null) account.refreshTokenExpiration = refreshExp;
+      account.shouldReconnect = false;
+    }
     await _accountService.save(account);
   }
 }

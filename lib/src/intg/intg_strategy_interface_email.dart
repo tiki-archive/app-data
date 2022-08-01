@@ -8,6 +8,12 @@ import '../email/msg/email_msg_model.dart';
 
 abstract class IntgStrategyInterfaceEmail {
 
+  Future<void> countInbox(
+      {required AccountModel account,
+        DateTime? since,
+        required Function(int amount) onResult,
+        required Function() onFinish});
+
   Future<void> getInbox(
       {required AccountModel account,
       DateTime? since,
@@ -29,4 +35,5 @@ abstract class IntgStrategyInterfaceEmail {
       required String to,
       String? subject,
       Function(bool success)? onResult});
+
 }
