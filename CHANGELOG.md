@@ -1,3 +1,10 @@
+## 0.0.21
+
+* add onError control for accounts
+* improve account status
+* strategy_google 0.0.15
+* strategy_microsoft 0.1.13
+
 ## 0.0.20
 
 * disconnect account that can't refresh
