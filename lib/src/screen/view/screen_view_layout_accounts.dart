@@ -38,7 +38,7 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
                   onLink: (account) => service.controller.saveAccount(account),
                   onUnlink: (email) => service.controller
                       .removeAccount(AccountModelProvider.google, email)),
-              Text("Progress! ${service.getStatus(account)}"),
+              Text("Progress: ${service.getStatus(account)}"),
             ],
           ))
           : Container(),
@@ -73,7 +73,12 @@ class ScreenViewLayoutAccounts extends StatelessWidget {
                     account: account,
                     provider: account.provider,
                     onLink: (account) => service.controller.saveAccount(account),
-                    onUnlink: (email) => service.controller.removeAccount(account.provider!, email))
+                    onUnlink: (email) => service.controller.removeAccount(account.provider!, email)),
+                Text("Current Fetch Progress: ${service.getStatus(account)}"),
+                service.isPaused(account) ?
+                  ElevatedButton(
+                    child: Text('Retry Commands'),
+                    onPressed: () => service.startCommandsFor(account)) : Container(),
               ],
     ))));
     return widgets;

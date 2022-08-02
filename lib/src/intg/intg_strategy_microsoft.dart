@@ -47,7 +47,8 @@ class IntgStrategyMicrosoft
                   {DateTime? accessExp,
                   String? accessToken,
                   DateTime? refreshExp,
-                  String? refreshToken}) {
+                  String? refreshToken,
+                    Object? error}) {
                 if (onRefresh != null)
                   onRefresh(account,
                       accessExp: accessExp,
