@@ -22,7 +22,7 @@ void main() async {
   String Function() accessToken = () => '';
 
   Httpp httpp = Httpp();
-  Database database = await openDatabase('tiki_data_test.db');
+  Database database = await openDatabase('tiki_data_test5.db');
   TikiKv tikiKv = await TikiKv(database: database).init();
   TikiDecision decision = await TikiDecision(tikiKv: tikiKv).init();
 

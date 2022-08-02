@@ -32,24 +32,28 @@ class IntgStrategyMicrosoftEmail extends IntgStrategyMicrosoft
           DateTime? since,
           String? page,
           required Function(List<EmailMsgModel> messages, {String? page}) onResult,
-          required Function() onFinish}) =>
+          required Function() onFinish,
+            Function(Object)? onError}) =>
       construct(account: account).fetchInbox(
           page: page,
           onResult: (msgIdList, {page}) => onResult(msgIdList
               .map((msgId) => EmailMsgModel(extMessageId: msgId))
               .toList(), page: page),
-          onFinish: onFinish);
+          onFinish: onFinish,
+          onError: onError);
 
   @override
   Future<void> getMessages(
           {required AccountModel account,
           required List<String> messageIds,
           required Function(EmailMsgModel message) onResult,
-          required Function() onFinish}) =>
+          required Function() onFinish,
+          Function(Object)? onError}) =>
       construct(account: account).fetchMessages(
           messageIds: messageIds,
           onResult: (msg) => onResult(EmailMsgModel.fromMap(msg.toJson())),
-          onFinish: onFinish);
+          onFinish: onFinish,
+          onError: onError);
 
   @override
   Future<void> send(

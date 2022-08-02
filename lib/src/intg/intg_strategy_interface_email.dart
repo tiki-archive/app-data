@@ -19,14 +19,16 @@ abstract class IntgStrategyInterfaceEmail {
       DateTime? since,
       String? page,
       required Function(List<EmailMsgModel> messages, {String? page}) onResult,
-      required Function() onFinish});
+      required Function() onFinish,
+      Function(Object)? onError});
 
 
   Future<void> getMessages(
       {required AccountModel account,
       required List<String> messageIds,
       required Function(EmailMsgModel message) onResult,
-      required Function() onFinish});
+      required Function() onFinish,
+      Function(Object)? onError});
 
 
   Future<void> send(

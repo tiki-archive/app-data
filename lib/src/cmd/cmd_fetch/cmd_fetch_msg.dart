@@ -12,14 +12,12 @@ import '../../email/email_service.dart';
 import '../../email/msg/email_msg_model.dart';
 import '../../email/sender/email_sender_model.dart';
 import '../../fetch/fetch_model_part.dart';
-import '../../fetch/fetch_model_status.dart';
 import '../../fetch/fetch_service.dart';
 import '../../graph/graph_strategy_email.dart';
 import '../../intg/intg_context_email.dart';
 import '../cmd_mgr/cmd_mgr_cmd.dart';
 import '../cmd_mgr/cmd_mgr_cmd_notif_exception.dart';
 import '../cmd_mgr/cmd_mgr_cmd_notif_finish.dart';
-import '../cmd_mgr/cmd_mgr_cmd_notif_progress_update.dart';
 import '../cmd_mgr/cmd_mgr_cmd_status.dart';
 import 'cmd_fetch_msg_notification.dart';
 
@@ -30,6 +28,7 @@ class CmdFetchMsg extends CmdMgrCmd {
   final List<EmailMsgModel> _fetched = [];
 
   num _amountFetched = 0;
+  num _remainingToFetch = 0;
   num _totalToFetch = 0;
 
   final FetchService _fetchService;
@@ -40,6 +39,7 @@ class CmdFetchMsg extends CmdMgrCmd {
   final CompanyService _companyService;
   final IntgContextEmail _intgContextEmail;
 
+  DateTime _lastAnswerTime;
   Amplitude? _amplitude;
 
   CmdFetchMsg(
@@ -52,7 +52,8 @@ class CmdFetchMsg extends CmdMgrCmd {
       GraphStrategyEmail this._graphStrategyEmail,
       Httpp? httpp,
       Amplitude? this._amplitude
-  ) : _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
+  ) : _intgContextEmail = IntgContextEmail(accountService, httpp: httpp),
+  _lastAnswerTime = DateTime.now();
 
   @override
   String get id => generateId(_account);
@@ -62,7 +63,8 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   @override
   Future<void> onStart() async {
-    _totalToFetch = await _fetchService.countParts(_account);
+    _remainingToFetch = await _fetchService.countParts(_account);
+    _totalToFetch = _remainingToFetch;
     _getPartsAndFetchMsg();
   }
 
@@ -73,7 +75,7 @@ class CmdFetchMsg extends CmdMgrCmd {
 
   @override
   Future<void> onResume() async {
-    _totalToFetch = await _fetchService.countParts(_account);
+    _remainingToFetch = await _fetchService.countParts(_account);
     _getPartsAndFetchMsg();
   }
 
@@ -88,9 +90,21 @@ class CmdFetchMsg extends CmdMgrCmd {
     return "CmdFetchMsg.$prov.$id";
   }
 
+  @override
+  num getProgress() {
+    return _amountFetched / _totalToFetch;
+  }
+
+  @override
+  String getProgressDescription() {
+    return "${_amountFetched}/${_totalToFetch} emails fetched";
+  }
+
   Future<void> _getPartsAndFetchMsg() async {
-    _totalToFetch = await _fetchService.countParts(_account);
-    if(_totalToFetch == 0){
+    _remainingToFetch = await _fetchService.countParts(_account);
+    _totalToFetch = _remainingToFetch + _amountFetched; // accounts for indexing more while fetching
+
+    if(_remainingToFetch == 0){
       _log.finest('${_account.email} - ${_account.provider} no parts to fetch. Finishing CmdFetchMsg');
       notify(CmdMgrCmdNotifFinish(id));
       return;
@@ -113,6 +127,7 @@ class CmdFetchMsg extends CmdMgrCmd {
       _intgContextEmail.getMessages(
         account: _account,
         messageIds: ids,
+        onError: _onError,
         onResult: _onMessageFetched,
         onFinish: _processFetchedMessages,
       );
@@ -123,20 +138,17 @@ class CmdFetchMsg extends CmdMgrCmd {
   }
 
   void _onMessageFetched(EmailMsgModel message){
+    _lastAnswerTime = DateTime.now();
 
     if (message.sender?.unsubscribeMailTo != null) _save.add(message);
-    _amountFetched ++;
 
     _fetched.add(message);
     _log.fine('Fetched ${message.extMessageId}.');
-    notify(CmdFetchMsgNotification(_account, _save, _fetched, _totalToFetch.toInt()));
   }
 
   Future<void> _processFetchedMessages() async {
     _log.fine('Fetched ${_fetched.length} processed messages');
     _log.fine('Proceeding to save ${_save.length} relevant messages');
-
-    _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
 
     Map<String, EmailSenderModel> senders = {};
     _save.where((msg) => msg.sender != null && msg.sender?.email != null)
@@ -156,13 +168,44 @@ class CmdFetchMsg extends CmdMgrCmd {
     } catch (e) {
       _log.severe(e);
     }
+    _decisionStrategySpam.addSpamCards(_account, _save);
+
+    // on error for local errors and skip for sync
+    _graphStrategyEmail.write(_save).catchError((error) {
+      _log.info("Problem saving email....");
+    }).then((_) {
+      _fetchService.deleteParts(_fetched, _account);
+      _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
+      try {
+        _amplitude?.logEvent("EMAILS_FETCHED", eventProperties: {
+          "count" : _fetched.length,
+          "saved" : _save.length
+        });
+      } catch (e) {
+        _log.severe(e);
+      }
+    });
 
     _decisionStrategySpam.addSpamCards(_account, _save);
 
     // saves to local graph & sync chain
+
+    /*
     _graphStrategyEmail.write(_save).catchError((error) {
       _log.info("Problem saving email....");
     });
+    */
+
+    /*
+    FOR MERGE: should all go in then() part after write
+     */
+    _fetchService.incrementStatus(_account, amount_fetched_change: _fetched.length);
+    _amountFetched += _fetched.length;
+    notify(CmdFetchMsgNotification(_account, _save, _fetched, _totalToFetch.toInt() ));
+
+    // clear fetched and save
+    _fetched.clear();
+    _save.clear();
 
     if(status == CmdMgrCmdStatus.running) _getPartsAndFetchMsg();
   }
@@ -201,14 +244,10 @@ class CmdFetchMsg extends CmdMgrCmd {
     }
   }
 
-  @override
-  num getProgress() {
-    return _amountFetched / _totalToFetch;
-  }
-
-  @override
-  String getProgressDescription() {
-    return "${_amountFetched}/${_totalToFetch} emails fetched";
+  void _onError(error){
+    if(_lastAnswerTime.difference(DateTime.now()).inSeconds > 30){
+      CmdMgrCmdNotifException(id, exception: "Indexing timeout.");
+    }
   }
 
 }
