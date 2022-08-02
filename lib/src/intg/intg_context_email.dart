@@ -50,12 +50,14 @@ class IntgContextEmail extends IntgContext {
           {required AccountModel account,
           required List<String> messageIds,
           required Function(EmailMsgModel message) onResult,
-          required Function() onFinish}) =>
+          required Function() onFinish,
+          Function(Object)? onError}) =>
       _strategy(account.provider)!.getMessages(
           account: account,
           messageIds: messageIds,
           onResult: onResult,
-          onFinish: onFinish);
+          onFinish: onFinish,
+          onError: onError);
 
   Future<void> send(
           {required AccountModel account,

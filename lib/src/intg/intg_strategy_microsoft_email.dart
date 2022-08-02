@@ -47,11 +47,13 @@ class IntgStrategyMicrosoftEmail extends IntgStrategyMicrosoft
           {required AccountModel account,
           required List<String> messageIds,
           required Function(EmailMsgModel message) onResult,
-          required Function() onFinish}) =>
+          required Function() onFinish,
+          Function(Object)? onError}) =>
       construct(account: account).fetchMessages(
           messageIds: messageIds,
           onResult: (msg) => onResult(EmailMsgModel.fromMap(msg.toJson())),
-          onFinish: onFinish);
+          onFinish: onFinish,
+          onError: onError);
 
   @override
   Future<void> send(

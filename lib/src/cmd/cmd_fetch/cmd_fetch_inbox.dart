@@ -162,7 +162,6 @@ class CmdFetchInbox extends CmdMgrCmd{
       notify(CmdMgrCmdNotifFinish(id));
   }
 
-
   void _onError(error){
     if(_lastAnswerTime.difference(DateTime.now()).inSeconds > 30){
       CmdMgrCmdNotifException(id, exception: "Indexing timeout.");

@@ -27,7 +27,8 @@ abstract class IntgStrategyInterfaceEmail {
       {required AccountModel account,
       required List<String> messageIds,
       required Function(EmailMsgModel message) onResult,
-      required Function() onFinish});
+      required Function() onFinish,
+      Function(Object)? onError});
 
 
   Future<void> send(
