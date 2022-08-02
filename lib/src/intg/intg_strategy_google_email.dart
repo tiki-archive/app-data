@@ -32,13 +32,15 @@ class IntgStrategyGoogleEmail extends IntgStrategyGoogle
           DateTime? since,
           String? page,
           required Function(List<EmailMsgModel> messages, {String? page}) onResult,
-          required Function() onFinish}) =>
+          required Function() onFinish,
+          Function(Object)? onError}) =>
       construct(account: account).fetchInbox(
           page: page,
           onResult: (msgIdList, {page}) => onResult(msgIdList
               .map((msgId) => EmailMsgModel(extMessageId: msgId))
               .toList(), page: page),
-          onFinish: onFinish);
+          onFinish: onFinish,
+          onError: onError);
 
   @override
   Future<void> getMessages(
