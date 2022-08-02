@@ -8,7 +8,6 @@ import '../../account/account_model.dart';
 import '../../account/account_service.dart';
 import '../../email/msg/email_msg_model.dart';
 import '../../fetch/fetch_model_part.dart';
-import '../../fetch/fetch_model_status.dart';
 import '../../fetch/fetch_service.dart';
 import '../../intg/intg_context_email.dart';
 import '../cmd_mgr/cmd_mgr_cmd.dart';
@@ -21,6 +20,7 @@ class CmdFetchInbox extends CmdMgrCmd{
   final AccountModel _account;
   final DateTime? _since;
   String? _page;
+  DateTime _lastAnswerTime;
 
   num _amountIndexed = 0;
   num _amountToIndex = 1;
@@ -40,14 +40,23 @@ class CmdFetchInbox extends CmdMgrCmd{
       Amplitude? amplitude
     ) :
       _amplitude = amplitude,
-      _intgContextEmail = IntgContextEmail(accountService, httpp: httpp);
+      _intgContextEmail = IntgContextEmail(accountService, httpp: httpp),
+        _lastAnswerTime = DateTime.now();
+
+  @override
+  num getProgress() {
+    return _amountIndexed / _amountToIndex;
+  }
+
+  @override
+  String getProgressDescription() {
+    return "${_amountIndexed}/${_amountToIndex} emails indexed";
+  }
 
   Future<void> index() async {
 
     if (this._since == null) {
-      // We're re-indexing from scratch, so we wipe the old status/fetch record
       await _fetchService.saveStatus(_account, amount_indexed: 0, amount_fetched: 0, total: 0);
-
     }
 
     await _intgContextEmail.countInbox(
@@ -55,7 +64,6 @@ class CmdFetchInbox extends CmdMgrCmd{
         since: _since,
         onResult: (amount) {
           _fetchService.saveStatus(_account, total: amount);
-
           _amountIndexed = 0;
           _amountToIndex = amount;
         },
@@ -69,7 +77,8 @@ class CmdFetchInbox extends CmdMgrCmd{
           since: _since,
           page: _page,
           onResult: _saveParts,
-          onFinish: _onFinish
+          onFinish: _onFinish,
+          onError: _onError
       );
     }catch(e){
       CmdMgrCmdNotifException(e.toString(),exception: e);
@@ -114,7 +123,7 @@ class CmdFetchInbox extends CmdMgrCmd{
   }
 
   Future<void> _saveParts(List<EmailMsgModel> messages, {String? page}) async {
-
+      _lastAnswerTime = DateTime.now();
       List<FetchModelPart<EmailMsgModel>> parts = messages.map((message) =>
           FetchModelPart(
               extId: message.extMessageId,
@@ -126,7 +135,6 @@ class CmdFetchInbox extends CmdMgrCmd{
       _page = page;
       if(_page != null) await _fetchService.savePage(_page!, _account);
 
-      // add the amount indexed
       _amountIndexed += parts.length;
 
       if(_page !=null) await _fetchService.savePage(_page!, _account);
@@ -144,25 +152,21 @@ class CmdFetchInbox extends CmdMgrCmd{
   }
 
   Future<void> _onFinish() async {
-      _log.fine('finished email index for ${_account.email}.');
+    _log.fine('finished email index for ${_account.email}.');
 
-      // in case the email provider count is higher than
-      // the amount it returns indexing, we still want these
-      // two values to end up the same.
+    if(_since != null) {
       _amountToIndex = _amountIndexed;
+    }
 
-      if(_page !=null) await _fetchService.savePage(_page!, _account);
+    if(_page != null) await _fetchService.savePage(_page!, _account);
       notify(CmdMgrCmdNotifFinish(id));
   }
 
-  @override
-  num getProgress() {
-    return _amountIndexed / _amountToIndex;
-  }
 
-  @override
-  String getProgressDescription() {
-    return "${_amountIndexed}/${_amountToIndex} emails indexed";
+  void _onError(error){
+    if(_lastAnswerTime.difference(DateTime.now()).inSeconds > 30){
+      CmdMgrCmdNotifException(id, exception: "Indexing timeout.");
+    }
   }
 
 }
